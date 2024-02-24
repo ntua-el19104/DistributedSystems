@@ -39,6 +39,9 @@ public class Wallet {
         }
     }
 
+     public String getPublicKeyToString() {
+         return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+     }
     @Override
     public String toString() {
         String publicKeyString = Base64.getEncoder().encodeToString(publicKey.getEncoded());

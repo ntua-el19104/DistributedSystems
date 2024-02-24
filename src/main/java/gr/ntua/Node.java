@@ -3,13 +3,21 @@ package gr.ntua;
 import gr.ntua.utils.TransactionUtils;
 
 import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Node {
     private int nonce;
     private Wallet wallet;
 
-    public Node(){
+    private Block block;
+
+    private List<Block> blockchain;
+
+    public Node() {
         this.nonce = 0;
+        block = new Block();
+        blockchain = new ArrayList<>();
     }
 
 
@@ -48,6 +56,32 @@ public class Node {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean verifyTransactionBalance(Transaction transaction) {
+        //TODO Implement
+        return true;
+    }
+
+    public boolean verifyTransaction(Transaction transaction) {
+        return verifySignature(transaction) &&  verifyTransactionBalance(transaction);
+    }
+
+    public void addTransactionToBlock(Transaction transaction) {
+        try{
+            block.addTransaction(transaction);
+        } catch (Exception e) {
+            //copy current block and pass to new thread to mine the new block
+            block = new Block();
+            try {
+                block.addTransaction(transaction);
+            } catch (Exception ex) {
+            }
+        }
+    }
+
+    public Block getBlock() {
+        return block;
     }
 
 

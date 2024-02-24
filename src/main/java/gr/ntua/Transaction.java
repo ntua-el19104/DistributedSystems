@@ -1,10 +1,9 @@
 package gr.ntua;
 
 import gr.ntua.utils.TransactionUtils;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.security.*;
+import java.util.Base64;
 
 public class Transaction {
     private int amount;
@@ -75,10 +74,29 @@ public class Transaction {
         this.signature = signature;
     }
 
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(2 * bytes.length);
+        for (int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(0xff & bytes[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
     @Override
     public String toString() {
+        String senderAddressToString = Base64.getEncoder().encodeToString(senderAddress.getEncoded());
+        String receiverAddressToString = Base64.getEncoder().encodeToString(receiverAddress.getEncoded());
         return "Transaction{" +
                 "amount=" + amount +
+                ", senderAddress=" + (senderAddressToString == null ? "null" : senderAddressToString.substring(0,10)) +
+                ", receiverAddress=" + (receiverAddressToString == null ? "null" : receiverAddressToString.substring(0,10)) +
+                ", nonce=" + nonce +
+                ", transactionIdHash=" + (transactionIdHash == null ? "null" : bytesToHex(transactionIdHash)) +
+                ", signature=" + (signature == null ? "null" : bytesToHex(signature)) +
                 '}';
     }
 }
