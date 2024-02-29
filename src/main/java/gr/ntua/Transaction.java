@@ -6,31 +6,46 @@ import java.security.*;
 import java.util.Base64;
 
 public class Transaction {
-    private int amount;
+    private double amount;
     private PublicKey senderAddress;
     private PublicKey receiverAddress;
+
+    private int senderId;
+
+    private int receiverId;
+
+    private String message;
+    private double fee;
     private int nonce;
     private byte[] transactionIdHash;
     private byte[] signature;
 
-    public Transaction(int amount, PublicKey senderAddress, PublicKey receiverAddress, int nonce) {
+    public Transaction(double amount, PublicKey senderAddress, PublicKey receiverAddress, int nonce,String message) {
         this.amount = amount;
         this.senderAddress = senderAddress;
         this.receiverAddress = receiverAddress;
         this.nonce = nonce;
         this.transactionIdHash = TransactionUtils.generateHash(transactionPayloadToString());
+        this.fee = amount*0.03;
+        if(message != null){
+            this.fee += message.length();
+        }
     }
 
 
     public String transactionPayloadToString() {
-        return String.format("%d:%s:%s:%d", amount, senderAddress.toString(), receiverAddress.toString(), nonce);
+        return String.format("%f:%s:%s:%d", amount, (senderAddress == null) ? "null" : senderAddress.toString(), (receiverAddress == null) ? "null" :receiverAddress.toString(), nonce);
     }
 
-    public int getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public double getFee() {
+        return fee;
+    }
+
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
@@ -58,6 +73,22 @@ public class Transaction {
         this.nonce = nonce;
     }
 
+    public int getReceiverId() {
+        return receiverId;
+    }
+
+    public int getSenderId() {
+        return senderId;
+    }
+
+    public void setReceiverId(int receiverId) {
+        this.receiverId = receiverId;
+    }
+
+    public void setSenderId(int senderId) {
+        this.senderId = senderId;
+    }
+
     public byte[] getTransactionIdHash() {
         return transactionIdHash;
     }
@@ -74,17 +105,6 @@ public class Transaction {
         this.signature = signature;
     }
 
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder(2 * bytes.length);
-        for (int i = 0; i < bytes.length; i++) {
-            String hex = Integer.toHexString(0xff & bytes[i]);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
 
     @Override
     public String toString() {
@@ -95,8 +115,8 @@ public class Transaction {
                 ", senderAddress=" + (senderAddressToString == null ? "null" : senderAddressToString.substring(0,10)) +
                 ", receiverAddress=" + (receiverAddressToString == null ? "null" : receiverAddressToString.substring(0,10)) +
                 ", nonce=" + nonce +
-                ", transactionIdHash=" + (transactionIdHash == null ? "null" : bytesToHex(transactionIdHash)) +
-                ", signature=" + (signature == null ? "null" : bytesToHex(signature)) +
+                ", transactionIdHash=" + (transactionIdHash == null ? "null" : TransactionUtils.bytesToHex(transactionIdHash)) +
+                ", signature=" + (signature == null ? "null" : TransactionUtils.bytesToHex(signature)) +
                 '}';
     }
 }
