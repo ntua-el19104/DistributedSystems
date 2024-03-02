@@ -24,8 +24,8 @@ public class Main {
         Transaction t0 = new Transaction(1000, null, node1.getWallet().getPublicKey(), 0, null);
         t0.setReceiverId(0);
         t0.setSenderId(-1);
-        node1.updateTempBalance(t0);
-        node2.updateTempBalance(t0);
+        node1.updateBalance(t0,0);
+        node2.updateBalance(t0,0);
         Transaction[] t = new Transaction[10];
         try {
             for (int i = 0; i < 9; i++) {
@@ -33,9 +33,9 @@ public class Main {
                 node1.signTransaction(t[i]);
                 //comm.broadcastTranscation(t[0]);
                 if(node1.validateTransaction(t[i]))
-                    node1.updateTempBalance(t[i]);
+                    node1.updateBalance(t[i],0);
                 if(node2.validateTransaction(t[i]))
-                    node2.updateTempBalance(t[i]);
+                    node2.updateBalance(t[i],0);
             }
 
         } catch (Exception e) {

@@ -13,7 +13,5 @@ public interface Communication {
 
     public int sendAddress(PublicKey pubKey);
 
-    public List<Block> getBlockchain();
-
     public void broadcastBlock(Block block, int id);
 }

@@ -1,6 +1,7 @@
 package gr.ntua;
 
 import gr.ntua.communication.Communication;
+import gr.ntua.utils.LocalComm;
 import gr.ntua.utils.TransactionUtils;
 
 import javax.lang.model.type.NullType;
@@ -27,20 +28,20 @@ public class Node {
 
     private int id;
 
-    Communication comm;
+    LocalComm comm;
 
     private List<Transaction> pending;
 
-    public Node(boolean boot,Communication com) {
+    public Node(boolean boot, LocalComm com) {
         comm = com;
         nonce = 0;
         generateWallet();
         PublicKey pubkey = this.wallet.getPublicKey();
         block = new Block();
         blockchain = new ArrayList<>();
-        if(boot)
-            return;
-        //comm.getBlockchain();
+        comm.sendAddress(pubkey);
+        comm.addNode(this);
+        setId();
     }
 
 
@@ -115,25 +116,25 @@ public class Node {
         return verifySignature(transaction) &&  verifyTransactionBalance(transaction);
     }
 
-    public void updateTempBalance(Transaction transaction){
-        int rid = transaction.getReceiverId();
-        int sid = transaction.getSenderId();
-        double amount = transaction.getAmount();
-        if(sid == -1){
-            nodeinfo.get(rid).setTempBalance(amount);
-        }
-        else if(rid == -1){
-            nodeinfo.get(sid).setTempStake(amount);
-            amount *= -1;
-            nodeinfo.get(sid).setTempBalance(amount);
-        } else{
-          nodeinfo.get(rid).setTempBalance(amount);
-          nodeinfo.get(sid).setTempBalance(0 - amount - transaction.getFee());
-        }
-    }
+//    public void updateTempBalance(Transaction transaction){
+//        int rid = transaction.getReceiverId();
+//        int sid = transaction.getSenderId();
+//        double amount = transaction.getAmount();
+//        if(sid == -1){
+//            nodeinfo.get(rid).setTempBalance(amount);
+//        }
+//        else if(rid == -1){
+//            nodeinfo.get(sid).setTempStake(amount);
+//            amount *= -1;
+//            nodeinfo.get(sid).setTempBalance(amount);
+//        } else{
+//          nodeinfo.get(rid).setTempBalance(amount);
+//          nodeinfo.get(sid).setTempBalance(0 - amount - transaction.getFee());
+//        }
+//    }
 
 
-    public void updateBalance(Transaction transaction){
+    public void updateBalance(Transaction transaction, int validator){
         int rid = transaction.getReceiverId();
         int sid = transaction.getSenderId();
         double amount = transaction.getAmount();
@@ -147,6 +148,7 @@ public class Node {
             nodeinfo.get(sid).setBalance(amount);
         } else{
             nodeinfo.get(rid).setBalance(amount);
+            nodeinfo.get(validator).setBalance(transaction.getFee());
             nodeinfo.get(sid).setBalance(0 - amount - transaction.getFee());
         }
     }
@@ -176,9 +178,11 @@ public class Node {
     }
 
     public void addBlock(Block block) throws Exception{
-        if(validateBlock())
+        if(validateBlock(block))
             blockchain.add(block);
         else throw new Exception("Node " + id + "failed to validate a block");
+        List<Transaction> list = block.getTransactionList();
+        int validator = findId(block.getValidator());
     }
 
     public List<Block> getBlockchain() {
@@ -236,7 +240,7 @@ public class Node {
         }
     }
 
-    private boolean validateBlock(){
+    public boolean validateBlock(Block block){
         byte[] hash = blockchain.get(blockchain.size() - 1).getCurrentHash();
         if(block.getPreviousHash()!=hash){
             return false;
@@ -247,7 +251,21 @@ public class Node {
             return false;
         }
     }
-    
+
+    public boolean validateChain(){
+        int i = 0;
+        for(Block block: blockchain){
+            if(!validateBlock(block) && i>0)
+                return false;
+            i++;
+        }
+        return true;
+    }
+
+    public void setBlockchain(List<Block> blockchain) {
+        this.blockchain = blockchain;
+    }
+
     public void printNodes(){
         for (NodeInfo temp : nodeinfo) {
             System.out.println(temp.getAddress() + " " + temp.getBalance() + " " + temp.getTempBalance());

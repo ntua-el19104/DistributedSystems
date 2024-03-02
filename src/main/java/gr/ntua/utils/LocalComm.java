@@ -26,8 +26,10 @@ public class LocalComm implements Communication {
     @Override
     public void broadcastAddresses() {
         List<PublicKey> list = Nodes.get(0).getAddresses();
+        List<Block> blockchain = Nodes.get(0).getBlockchain();
         for(Node i:Nodes){
             i.setAddresses(list);
+            i.setBlockchain(blockchain);
         }
     }
 
@@ -39,10 +41,6 @@ public class LocalComm implements Communication {
         return res;
     }
 
-    @Override
-    public List<Block> getBlockchain() {
-        return Nodes.get(0).getBlockchain();
-    }
 
     @Override
     public void broadcastBlock(Block block, int id) {
