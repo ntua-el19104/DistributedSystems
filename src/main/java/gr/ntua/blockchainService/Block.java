@@ -1,13 +1,10 @@
-package gr.ntua;
+package gr.ntua.blockchainService;
 
 import gr.ntua.utils.TransactionUtils;
-
 import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class Block {
@@ -30,6 +27,7 @@ public class Block {
         if(transactionList.size() < CAPACITY) {
             transactionList.add(transaction);
         } else {
+            // TODO create custom exception
             throw new Exception("Block filled with transactions");
         }
     }

@@ -1,8 +1,8 @@
-package gr.ntua;
+package gr.ntua.blockchainService;
 
 import gr.ntua.utils.TransactionUtils;
 
-import java.security.*;
+import java.security.PublicKey;
 import java.util.Base64;
 
 public class Transaction {
@@ -26,17 +26,26 @@ public class Transaction {
         this.receiverAddress = receiverAddress;
         this.nonce = nonce;
         this.transactionIdHash = TransactionUtils.generateHash(transactionPayloadToString());
-        this.fee = amount*0.03;
-        if(message != null){
-            this.fee += message.length();
+        if(amount > 0) {
+            this.fee = amount * 0.03;
+        } else if(message != null) {
+            this.fee = message.length();
         }
+        // else {} throw error invalid transaction
         if(senderAddress==null || receiverAddress==null)
             this.fee = 0;
     }
 
 
     public String transactionPayloadToString() {
-        return String.format("%f:%s:%s:%d", amount, (senderAddress == null) ? "null" : senderAddress.toString(), (receiverAddress == null) ? "null" :receiverAddress.toString(), nonce);
+        return String.format(
+                "%f:%s:%s:%s:%d",
+                amount,
+                (message == null) ? "null" : message,
+                (senderAddress == null) ? "null" : Wallet.getKeyToString(senderAddress),
+                (receiverAddress == null) ? "null" : Wallet.getKeyToString(receiverAddress),
+                nonce
+        );
     }
 
     public double getAmount() {

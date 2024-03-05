@@ -1,4 +1,4 @@
-package gr.ntua;
+package gr.ntua.blockchainService;
 
 import gr.ntua.utils.TransactionUtils;
 
@@ -7,6 +7,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Key;
 import java.util.Base64;
 
 public class Wallet {
@@ -39,14 +40,12 @@ public class Wallet {
         }
     }
 
-     public String getPublicKeyToString() {
-         return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+     public static String getKeyToString(Key key) {
+         return Base64.getEncoder().encodeToString(key.getEncoded());
      }
     @Override
     public String toString() {
-        String publicKeyString = Base64.getEncoder().encodeToString(publicKey.getEncoded());
-        String privateKeyString = Base64.getEncoder().encodeToString(privateKey.getEncoded());
-        return "Public Key: " + publicKeyString.substring(0, 20) + "..." +
-                "\nPrivate Key: " + privateKeyString.substring(0, 20) + "...";
+        return "Public Key: " + getKeyToString(publicKey).substring(0, 20) + "..." +
+                "\nPrivate Key: " + getKeyToString(privateKey).substring(0, 20) + "...";
     }
 }

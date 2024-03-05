@@ -1,17 +1,16 @@
 package gr.ntua.communication;
 
-import gr.ntua.Block;
-import gr.ntua.Transaction;
+import gr.ntua.blockchainService.Block;
+import gr.ntua.blockchainService.Transaction;
 
 import java.security.PublicKey;
-import java.util.List;
 
 public interface Communication {
-    public void broadcastTranscation(Transaction transaction);
+    public void broadcastTransaction(Transaction transaction);
 
     public void broadcastAddresses();
 
-    public int sendAddress(PublicKey pubKey);
+    public int connectToBlockchat(PublicKey pubKey);
 
     public void broadcastBlock(Block block, int id);
 }

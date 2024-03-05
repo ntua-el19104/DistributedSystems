@@ -1,18 +1,13 @@
-package gr.ntua;
+package gr.ntua.blockchainService;
 
+import gr.ntua.communication.ClassInstancesCommunication;
 import gr.ntua.communication.Communication;
-import gr.ntua.utils.LocalComm;
 import gr.ntua.utils.TransactionUtils;
-
-import javax.lang.model.type.NullType;
 import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import java.nio.charset.StandardCharsets;
-
 
 public class Node {
     private int nonce;
@@ -22,24 +17,23 @@ public class Node {
 
     private List<Block> blockchain;
 
-    private List<NodeInfo> nodeinfo;
+    private List<NodeInfo> nodeInfoList;
 
     private List<PublicKey> addresses = new ArrayList<>();
 
     private int id;
 
-    LocalComm comm;
+    Communication communicationInterface;
 
     private List<Transaction> pending = new ArrayList<>();
 
-    public Node(boolean boot, LocalComm com) {
-        comm = com;
+    public Node(Communication communicationInterface) {
+        this.communicationInterface = communicationInterface;
         nonce = 0;
         generateWallet();
         block = new Block();
         blockchain = new ArrayList<>();
-        comm.addNode(this);
-        setId();
+        id = -1;
     }
 
 
@@ -78,8 +72,10 @@ public class Node {
         return -2;
     }
 
-    public void setId(){
-        id = comm.sendAddress(getWallet().getPublicKey());
+    public void connectToBlockchat(){
+        if(id == -1){
+            id = communicationInterface.connectToBlockchat(getWallet().getPublicKey());
+        }
     }
 
     public void signTransaction(Transaction transaction) {
@@ -102,34 +98,18 @@ public class Node {
         if(rid == -1){
             if(amount<0){
                 amount *= -1;
-                return amount <= nodeinfo.get(sid).getTempStake();
+        return amount <= nodeInfoList.get(sid).getTempStake();
             } else {
-                return amount <= nodeinfo.get(sid).getBalance();
+        return amount <= nodeInfoList.get(sid).getBalance();
             }
         }
-        return (amount + transaction.getFee())<= nodeinfo.get(sid).getBalance();
+    return (amount + transaction.getFee()) <= nodeInfoList.get(sid).getBalance();
     }
 
     public boolean validateTransaction(Transaction transaction) {
         return verifySignature(transaction) &&  verifyTransactionBalance(transaction);
     }
 
-//    public void updateTempBalance(Transaction transaction){
-//        int rid = transaction.getReceiverId();
-//        int sid = transaction.getSenderId();
-//        double amount = transaction.getAmount();
-//        if(sid == -1){
-//            nodeinfo.get(rid).setTempBalance(amount);
-//        }
-//        else if(rid == -1){
-//            nodeinfo.get(sid).setTempStake(amount);
-//            amount *= -1;
-//            nodeinfo.get(sid).setTempBalance(amount);
-//        } else{
-//          nodeinfo.get(rid).setTempBalance(amount);
-//          nodeinfo.get(sid).setTempBalance(0 - amount - transaction.getFee());
-//        }
-//    }
 
     //updates nodes info for every valid transaction and checks against replay attack(nonce)
     public void updateBalance(Transaction transaction, int validator) throws Exception{
@@ -138,27 +118,27 @@ public class Node {
         double amount = transaction.getAmount();
         int nonce = transaction.getNonce();
         if(sid == -1){
-            nodeinfo.get(rid).setBalance(amount);
+      nodeInfoList.get(rid).setBalance(amount);
         }
         else if(rid == -1){
-            nodeinfo.get(sid).setStake(amount);
+      nodeInfoList.get(sid).setStake(amount);
             amount *= -1;
-            nodeinfo.get(sid).setBalance(amount);
-            if(!nodeinfo.get(sid).addNonce(nonce))
-                throw new Exception("Invalid nonce");
+      nodeInfoList.get(sid).setBalance(amount);
+      if (!nodeInfoList.get(sid).addNonce(nonce)) throw new Exception("Invalid nonce");
         } else{
-            nodeinfo.get(rid).setBalance(amount);
-            nodeinfo.get(validator).setBalance(transaction.getFee());
-            nodeinfo.get(sid).setBalance(0 - amount - transaction.getFee());
-            if(!nodeinfo.get(sid).addNonce(nonce))
-                throw new Exception("Invalid nonce");
+      nodeInfoList.get(rid).setBalance(amount);
+      nodeInfoList.get(validator).setBalance(transaction.getFee());
+      nodeInfoList.get(sid).setBalance(0 - amount - transaction.getFee());
+      if (!nodeInfoList.get(sid).addNonce(nonce)) throw new Exception("Invalid nonce");
         }
 
     }
 
-    //adds transtactions to the block from the pending queue until the queue is empty or the block gets filled.
-    //Broadcasts the complete block. Should be repeatedly called by the validator until the block is sent.
-    public void addTransactionsToBlock() {
+  // adds transactions to the block from the pending queue until the queue is empty or the block
+  // gets filled.
+  // Broadcasts the complete block. Should be repeatedly called by the validator until the block is
+  // sent.
+  public void addTransactionsToBlock() {
         int counter = 0;
         while(!pending.isEmpty()){
             Transaction current = pending.get(0);
@@ -171,7 +151,7 @@ public class Node {
                 } catch (Exception e){
                     mintBlock();
                     blockchain.add(block);
-                    comm.broadcastBlock(block,id);
+                    communicationInterface.broadcastBlock(block,id);
                     break;
                 }
             }
@@ -211,7 +191,7 @@ public class Node {
         try{
             Transaction temp = createTransaction(amount,null,null);
             signTransaction(temp);
-            comm.broadcastTranscation(temp);
+      communicationInterface.broadcastTransaction(temp);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -224,14 +204,14 @@ public class Node {
         t0.setSenderId(-1);
         t0.setReceiverId(0);
         block.addTransactionNoCheck(t0);
-        comm.broadcastTranscation(t0);
+    communicationInterface.broadcastTransaction(t0);
         for (int i = 1; i < size; i++) {
             PublicKey publicKey = addresses.get(i);
             try{
                 Transaction transaction = createTransaction(1000,publicKey,null);
                 transaction.setFee(0);
                 block.addTransactionNoCheck(transaction);
-                comm.broadcastTranscation(transaction);
+        communicationInterface.broadcastTransaction(transaction);
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -273,11 +253,11 @@ public class Node {
 
     public int getValidator(byte[] hash) throws Exception{
         int hashcode = Arrays.hashCode(hash);
-        int size = nodeinfo.size();
+    int size = nodeInfoList.size();
         double[] stakes = new double[size];
         double current = 0;
         for (int i = 0; i<size; i++){
-            current += nodeinfo.get(i).getStake();
+      current += nodeInfoList.get(i).getStake();
             stakes[i] = current;
         }
         int c = (int)current;
@@ -339,16 +319,16 @@ public class Node {
     }
 
     public void printNodes(){
-        for (NodeInfo temp : nodeinfo) {
+    for (NodeInfo temp : nodeInfoList) {
             System.out.println(temp.getAddress() + " " + temp.getBalance() + " " + temp.getTempBalance());
         }
     }
 
     public void setNodeinfo() {
-        this.nodeinfo = new ArrayList<>();
+    this.nodeInfoList = new ArrayList<>();
         int i = 0;
         for(PublicKey publicKey: addresses){
-            nodeinfo.add(new NodeInfo(i,publicKey));
+      nodeInfoList.add(new NodeInfo(i, publicKey));
             i++;
         }
     }

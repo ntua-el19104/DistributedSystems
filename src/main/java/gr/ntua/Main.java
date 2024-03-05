@@ -1,18 +1,19 @@
 package gr.ntua;
 
-import gr.ntua.communication.Communication;
-import gr.ntua.utils.LocalComm;
-import gr.ntua.utils.TransactionUtils;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import gr.ntua.blockchainService.Block;
+import gr.ntua.blockchainService.Node;
+import gr.ntua.blockchainService.Transaction;
+import gr.ntua.communication.ClassInstancesCommunication;
 
 public class Main {
     public static void main(String[] args) {
-        LocalComm comm = new LocalComm();
-        Node node1 = new Node(true, comm);
-        Node node2 = new Node(false, comm);
+        ClassInstancesCommunication comm = new ClassInstancesCommunication();
+        Node node1 = new Node(comm);
+        comm.addNode(node1);
+        node1.connectToBlockchat();
+        Node node2 = new Node(comm);
+        comm.addNode(node2);
+        node2.connectToBlockchat();
         comm.broadcastAddresses();
         node1.setNodeinfo();
         node2.setNodeinfo();
@@ -24,7 +25,7 @@ public class Main {
             for (int i = 0; i < 20; i++) {
                 Transaction temp = node1.createTransaction(10, node2.getWallet().getPublicKey(), null);
                 node1.signTransaction(temp);
-                comm.broadcastTranscation(temp);
+                comm.broadcastTransaction(temp);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -37,5 +38,6 @@ public class Main {
         node2.addTransactionsToBlock();
         node2.printNodes();
         node1.printNodes();
+
     }
 }

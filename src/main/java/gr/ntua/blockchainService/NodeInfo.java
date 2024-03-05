@@ -1,4 +1,4 @@
-package gr.ntua;
+package gr.ntua.blockchainService;
 
 import java.security.PublicKey;
 import java.util.*;
@@ -12,7 +12,7 @@ public class NodeInfo {
 
     private double temp_stake = 0;
 
-    private LinkedList<Integer> nonces = new LinkedList<Integer>();
+    private LinkedList<Integer> noncesList = new LinkedList<>();
 
     final private int address;
 
@@ -21,7 +21,7 @@ public class NodeInfo {
     public NodeInfo(int addr,PublicKey pubKey){
         address = addr;
         publicKey = pubKey;
-        nonces.add(-1);
+        noncesList.add(-1);
     }
 
     public void setBalance(double balance) {
@@ -29,26 +29,26 @@ public class NodeInfo {
     }
 
     public boolean addNonce(int nonce){
-        int largest = nonces.getLast();
-        if(nonces.contains(nonce))
+        int largest = noncesList.getLast();
+        if(noncesList.contains(nonce))
             return false;
-        if(nonces.get(0) > nonce)
+        if(noncesList.get(0) > nonce)
             return false;
         if(nonce == largest + 1) {
             largest++;
-            nonces.removeLast();
-            nonces.addLast(largest);
+            noncesList.removeLast();
+            noncesList.addLast(largest);
             return true;
         }
         if(nonce > largest + 1){
-            nonces.addLast(nonce);
+            noncesList.addLast(nonce);
             return true;
         }
-        nonces.add(nonce);
-        Collections.sort(nonces);
+        noncesList.add(nonce);
+        Collections.sort(noncesList);
         while (true){
-            if(nonces.get(0).equals(nonces.get(1) - 1))
-                nonces.remove(0);
+            if(noncesList.get(0).equals(noncesList.get(1) - 1))
+                noncesList.remove(0);
             else break;
             }
         return true;
