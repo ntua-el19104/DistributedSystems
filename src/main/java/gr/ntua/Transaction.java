@@ -30,6 +30,8 @@ public class Transaction {
         if(message != null){
             this.fee += message.length();
         }
+        if(senderAddress==null || receiverAddress==null)
+            this.fee = 0;
     }
 
 
@@ -43,6 +45,10 @@ public class Transaction {
 
     public double getFee() {
         return fee;
+    }
+
+    public void setFee(double fee) {
+        this.fee = fee;
     }
 
     public void setAmount(double amount) {

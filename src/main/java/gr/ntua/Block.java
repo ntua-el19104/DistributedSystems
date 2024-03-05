@@ -5,6 +5,7 @@ import gr.ntua.utils.TransactionUtils;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -13,13 +14,13 @@ public class Block {
     private final int CAPACITY = 10;
     private int index;
     private LocalDateTime timestamp;
-    private PublicKey validator;
+    private Integer validator;
     private byte[] currentHash;
     private byte[] previousHash;
-    private List<Transaction> transactionList;
+    private List<Transaction> transactionList = new ArrayList<>();
 
     public void generateCurrentHash() throws Exception {
-        if(transactionList.size() < CAPACITY) {
+        if(transactionList.size() < CAPACITY && previousHash != null) {
             throw new Exception("Number of Transactions lees than 10.");
         }
         currentHash = TransactionUtils.generateHash(blockPayloadToString());
@@ -33,6 +34,10 @@ public class Block {
         }
     }
 
+    public void addTransactionNoCheck(Transaction transaction){
+        transactionList.add(transaction);
+    }
+
     private String transactionsPayloadToString() {
         return transactionList.stream()
                 .map(Transaction::transactionPayloadToString)
@@ -40,6 +45,8 @@ public class Block {
     }
 
     private String blockPayloadToString() {
+        if(previousHash==null)
+            return "null";
         return Integer.toString(index) + new String(previousHash, StandardCharsets.UTF_8) +
                 timestamp.toString() + transactionsPayloadToString();
     }
@@ -60,11 +67,11 @@ public class Block {
         this.timestamp = timestamp;
     }
 
-    public PublicKey getValidator() {
+    public int getValidator() {
         return validator;
     }
 
-    public void setValidator(PublicKey validator) {
+    public void setValidator(int validator) {
         this.validator = validator;
     }
 

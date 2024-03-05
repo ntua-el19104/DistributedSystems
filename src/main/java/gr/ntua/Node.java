@@ -30,16 +30,14 @@ public class Node {
 
     LocalComm comm;
 
-    private List<Transaction> pending;
+    private List<Transaction> pending = new ArrayList<>();
 
     public Node(boolean boot, LocalComm com) {
         comm = com;
         nonce = 0;
         generateWallet();
-        PublicKey pubkey = this.wallet.getPublicKey();
         block = new Block();
         blockchain = new ArrayList<>();
-        comm.sendAddress(pubkey);
         comm.addNode(this);
         setId();
     }
@@ -59,7 +57,7 @@ public class Node {
         }
     }
 
-    public Transaction createTransaction(int amount, PublicKey receiverAddress,String message) throws Exception{
+    public Transaction createTransaction(double amount, PublicKey receiverAddress,String message) throws Exception{
         Transaction transaction = new Transaction(amount, wallet.getPublicKey(), receiverAddress, nonce, message);
         transaction.setSenderId(id);
         int rid = findId(receiverAddress);
@@ -106,10 +104,10 @@ public class Node {
                 amount *= -1;
                 return amount <= nodeinfo.get(sid).getTempStake();
             } else {
-                return amount <= nodeinfo.get(sid).getTempBalance();
+                return amount <= nodeinfo.get(sid).getBalance();
             }
         }
-        return (amount + transaction.getFee())<= nodeinfo.get(sid).getTempBalance();
+        return (amount + transaction.getFee())<= nodeinfo.get(sid).getBalance();
     }
 
     public boolean validateTransaction(Transaction transaction) {
@@ -133,40 +131,52 @@ public class Node {
 //        }
 //    }
 
-
-    public void updateBalance(Transaction transaction, int validator){
+    //updates nodes info for every valid transaction and checks against replay attack(nonce)
+    public void updateBalance(Transaction transaction, int validator) throws Exception{
         int rid = transaction.getReceiverId();
         int sid = transaction.getSenderId();
         double amount = transaction.getAmount();
+        int nonce = transaction.getNonce();
         if(sid == -1){
             nodeinfo.get(rid).setBalance(amount);
         }
         else if(rid == -1){
-
             nodeinfo.get(sid).setStake(amount);
             amount *= -1;
             nodeinfo.get(sid).setBalance(amount);
+            if(!nodeinfo.get(sid).addNonce(nonce))
+                throw new Exception("Invalid nonce");
         } else{
             nodeinfo.get(rid).setBalance(amount);
             nodeinfo.get(validator).setBalance(transaction.getFee());
             nodeinfo.get(sid).setBalance(0 - amount - transaction.getFee());
+            if(!nodeinfo.get(sid).addNonce(nonce))
+                throw new Exception("Invalid nonce");
         }
+
     }
 
-    public void addTransactionToBlock(Transaction transaction) {
-        try{
-            block.addTransaction(transaction);
-        } catch (Exception e) {
-            //copy current block and pass to new thread to mine the new block
-            mintBlock();
-            comm.broadcastBlock(block,id);
-            block = new Block();
-            try{
-                block.addTransaction(transaction);
-            } catch (Exception ex) {
-                ex.printStackTrace();
+    //adds transtactions to the block from the pending queue until the queue is empty or the block gets filled.
+    //Broadcasts the complete block. Should be repeatedly called by the validator until the block is sent.
+    public void addTransactionsToBlock() {
+        int counter = 0;
+        while(!pending.isEmpty()){
+            Transaction current = pending.get(0);
+            if(validateTransaction(current)){
+                try {
+                    block.addTransaction(current);
+                    updateBalance(current,id);
+                    counter++;
+                    pending.remove(0);
+                } catch (Exception e){
+                    mintBlock();
+                    blockchain.add(block);
+                    comm.broadcastBlock(block,id);
+                    break;
+                }
             }
         }
+        System.out.println(counter + " Transactions were added");
     }
 
     public void addPendingTransaction(Transaction transaction){
@@ -177,12 +187,64 @@ public class Node {
         return block;
     }
 
+    //Should be called by all the nodes except from the validator to add the block to their blockchain
     public void addBlock(Block block) throws Exception{
-        if(validateBlock(block))
+        if(validateBlock(block)) {
             blockchain.add(block);
-        else throw new Exception("Node " + id + "failed to validate a block");
+        }
+        else {
+            throw new Exception("Node " + id + " failed to validate a block");
+        }
         List<Transaction> list = block.getTransactionList();
-        int validator = findId(block.getValidator());
+        int validator = block.getValidator();
+        for(Transaction i:list){
+            updateBalance(i,validator);
+            pending.remove(i);
+        }
+    }
+
+    public void setBlock(Block block) {
+        this.block = block;
+    }
+
+    public void stake(double amount){
+        try{
+            Transaction temp = createTransaction(amount,null,null);
+            signTransaction(temp);
+            comm.broadcastTranscation(temp);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public Block createGenesisBlock(){
+        Block block = new Block();
+        int size = addresses.size();
+        Transaction t0 = new Transaction(size*1000,null, addresses.get(0),0,null );
+        t0.setSenderId(-1);
+        t0.setReceiverId(0);
+        block.addTransactionNoCheck(t0);
+        comm.broadcastTranscation(t0);
+        for (int i = 1; i < size; i++) {
+            PublicKey publicKey = addresses.get(i);
+            try{
+                Transaction transaction = createTransaction(1000,publicKey,null);
+                transaction.setFee(0);
+                block.addTransactionNoCheck(transaction);
+                comm.broadcastTranscation(transaction);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        block.setPreviousHash(null);
+        try{
+            block.generateCurrentHash();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        block.setValidator(0);
+        block.setIndex(0);
+        return block;
     }
 
     public List<Block> getBlockchain() {
@@ -219,10 +281,15 @@ public class Node {
             stakes[i] = current;
         }
         int c = (int)current;
+        if(c==0){
+            return 0;
+        }
         hashcode%=c;
-        for(int i=-0; i<size;i++){
-            if(stakes[i]>hashcode)
+        hashcode = Math.abs(hashcode);
+        for(int i=0; i<size;i++){
+            if(stakes[i]>hashcode) {
                 return i;
+            }
         }
         throw new Exception("did not select validator");
     }
@@ -232,7 +299,8 @@ public class Node {
         block.setPreviousHash(last.getCurrentHash());
         block.setIndex(last.getIndex() + 1);
         block.setTimestamp(LocalDateTime.now());
-        block.setValidator(getWallet().getPublicKey());
+        block.setValidator(id);
+        block.setIndex(last.getIndex() + 1);
         try{
             block.generateCurrentHash();
         } catch (Exception e){
@@ -241,12 +309,16 @@ public class Node {
     }
 
     public boolean validateBlock(Block block){
+        if(block.getPreviousHash()==null) {
+            return true;
+        }
         byte[] hash = blockchain.get(blockchain.size() - 1).getCurrentHash();
-        if(block.getPreviousHash()!=hash){
+        int index =  blockchain.get(blockchain.size() - 1).getIndex() + 1;
+        if(block.getPreviousHash()!=hash || block.getIndex()!=index){
             return false;
         }
         try{
-            return addresses.get(getValidator(hash)) == block.getValidator();
+            return getValidator(hash) == block.getValidator();
         } catch (Exception e){
             return false;
         }
