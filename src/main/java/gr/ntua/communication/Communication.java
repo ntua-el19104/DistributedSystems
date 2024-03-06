@@ -4,6 +4,7 @@ import gr.ntua.blockchainService.Block;
 import gr.ntua.blockchainService.Transaction;
 
 import java.security.PublicKey;
+import java.util.concurrent.ExecutionException;
 
 public interface Communication {
     public void broadcastTransaction(Transaction transaction);

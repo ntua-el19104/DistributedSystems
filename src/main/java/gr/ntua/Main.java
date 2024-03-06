@@ -11,6 +11,7 @@ public class Main {
         Node node1 = new Node(comm);
         comm.addNode(node1);
         node1.connectToBlockchat();
+
         Node node2 = new Node(comm);
         comm.addNode(node2);
         node2.connectToBlockchat();
