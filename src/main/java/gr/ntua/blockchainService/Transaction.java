@@ -123,12 +123,12 @@ public class Transaction {
 
     @Override
     public String toString() {
-        String senderAddressToString = Base64.getEncoder().encodeToString(senderAddress.getEncoded());
-        String receiverAddressToString = Base64.getEncoder().encodeToString(receiverAddress.getEncoded());
+        String senderAddressToString = senderAddress!= null ? Base64.getEncoder().encodeToString(senderAddress.getEncoded()) : "null";
+        String receiverAddressToString = receiverAddress!= null ? Base64.getEncoder().encodeToString(receiverAddress.getEncoded()) : "null";
         return "Transaction{" +
                 "amount=" + amount +
-                ", senderAddress=" + (senderAddressToString == null ? "null" : senderAddressToString.substring(0,10)) +
-                ", receiverAddress=" + (receiverAddressToString == null ? "null" : receiverAddressToString.substring(0,10)) +
+                ", senderAddress=" + senderAddressToString +
+                ", receiverAddress=" + receiverAddressToString +
                 ", nonce=" + nonce +
                 ", transactionIdHash=" + (transactionIdHash == null ? "null" : TransactionUtils.bytesToHex(transactionIdHash)) +
                 ", signature=" + (signature == null ? "null" : TransactionUtils.bytesToHex(signature)) +

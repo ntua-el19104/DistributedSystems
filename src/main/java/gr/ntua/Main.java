@@ -31,11 +31,11 @@ public class Main {
             e.printStackTrace();
         }
         node1.setBlock(new Block());
-        node1.addTransactionsToBlock();
+        node1.broadcastBlock();
         node2.printNodes();
         node1.printNodes();
         node2.setBlock(new Block());
-        node2.addTransactionsToBlock();
+        node2.broadcastBlock();
         node2.printNodes();
         node1.printNodes();
 

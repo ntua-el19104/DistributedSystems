@@ -45,7 +45,7 @@ public class Wallet {
      }
     @Override
     public String toString() {
-        return "Public Key: " + getKeyToString(publicKey).substring(0, 20) + "..." +
-                "\nPrivate Key: " + getKeyToString(privateKey).substring(0, 20) + "...";
+        return "Public Key: " + getKeyToString(publicKey).substring(0, 50) + "..." +
+                "\nPrivate Key: " + getKeyToString(privateKey).substring(0, 50) + "...";
     }
 }

@@ -10,6 +10,10 @@ import java.util.List;
 public class ClassInstancesCommunication implements Communication {
     private List<Node> nodesList = new ArrayList<>();
 
+    public List<Node> getNodesList() {
+        return nodesList;
+    }
+
     /*
      * This function only exists in this
      * concrete implementation.
@@ -37,7 +41,7 @@ public class ClassInstancesCommunication implements Communication {
     @Override
     public int connectToBlockchat(PublicKey pubKey) {
         Node temp = nodesList.get(0);
-        int res = temp.getSize();
+        int res = temp.getAddresses().size();
         temp.addAddress(pubKey);
         return res;
     }
