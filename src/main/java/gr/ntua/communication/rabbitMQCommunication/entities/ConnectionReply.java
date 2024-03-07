@@ -9,5 +9,5 @@ import java.security.PublicKey;
 @AllArgsConstructor
 public class ConnectionReply {
     private int nodeId;
-    private PublicKey publicKey;
+    private String publicKey;
 }

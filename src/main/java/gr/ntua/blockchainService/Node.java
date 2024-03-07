@@ -2,12 +2,17 @@ package gr.ntua.blockchainService;
 
 import gr.ntua.communication.Communication;
 import gr.ntua.utils.TransactionUtils;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.security.PublicKey;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Setter
+@Getter
 public class Node {
   private int nonce;
   private Wallet wallet;
@@ -18,14 +23,16 @@ public class Node {
   private int id;
   Communication communication;
   private List<Transaction> pending = new ArrayList<>();
+  private Boolean isBootstrap;
 
   public Node(Communication communication) {
     this.communication = communication;
-    nonce = 0;
+    this.nonce = 0;
     generateWallet();
-    block = new Block();
-    blockchain = new ArrayList<>();
-    id = -1;
+    this.block = new Block();
+    this.blockchain = new ArrayList<>();
+    this.id = -1;
+    this.isBootstrap = false;
   }
 
   // CORE FUNCTIONS --------------------------------------------------------------------------------

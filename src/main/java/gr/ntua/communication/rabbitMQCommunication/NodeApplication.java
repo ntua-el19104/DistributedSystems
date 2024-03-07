@@ -1,34 +1,46 @@
 package gr.ntua.communication.rabbitMQCommunication;
 
 import gr.ntua.blockchainService.Node;
+import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
+import jakarta.annotation.PostConstruct;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 public class NodeApplication {
 
     private static RabbitTemplate rabbitTemplate = null;
+    private static boolean isBootstrap;
+    private static SharedConfig sharedConfig = null;
 
     @Autowired
-    public NodeApplication(RabbitTemplate rabbitTemplate) {
+    public NodeApplication(RabbitTemplate rabbitTemplate, SharedConfig sharedConfig) {
         this.rabbitTemplate = rabbitTemplate;
-    }
-    public static void main(String[] args) {
-        SpringApplication.run(NodeApplication.class, args);
-        RabbitMQCommunication rabbitMQCommunication = new RabbitMQCommunication(rabbitTemplate);
-        Node node = new Node(rabbitMQCommunication);
-        if (Integer.parseInt(args[0]) != 0)
-            node.connectToBlockchat();
+        this.sharedConfig = sharedConfig;
     }
 
-//    @Bean
-//    public CommandLineRunner commandLineRunner(AcceptConnectionsConsumer acceptConnectionsConsumer) {
-//        return args -> {
-//            acceptConnectionsConsumer.setNodeId(Integer.parseInt(args[0]));
-//        };
-//    }
+
+
+    public static void main(String[] args) {
+        SpringApplication.run(NodeApplication.class, args);
+        isBootstrap = Boolean.parseBoolean(args[0]);
+
+        RabbitMQCommunication rabbitMQCommunication = new RabbitMQCommunication(rabbitTemplate, sharedConfig);
+        Node node = new Node(rabbitMQCommunication);
+        if (isBootstrap) {
+            node.setIsBootstrap(true);
+            node.setId(0);
+        } else
+            node.connectToBlockchat();
+
+    }
+
+    @PostConstruct
+    public void init(){
+        sharedConfig.setBootstrap(isBootstrap);
+    }
+
 
 }

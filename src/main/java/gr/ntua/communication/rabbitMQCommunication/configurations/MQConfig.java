@@ -12,39 +12,52 @@ import org.springframework.context.annotation.Configuration;
 public class MQConfig {
 
     public static final String CONNECTION_QUEUE = "connection_queue";
+    public static final String ACCEPTED_CONNECTIONS_QUEUE = "accepted_connections_queue";
     public static final String EXCHANGE = "connection_exchange";
-    public static final String ROUTING_KEY = "connection_routingKey";
+    public static final String CONNECTION_ROUTING_KEY = "connection_routingKey";
+    public static final String ACCEPTED_CONNECTIONS_ROUTING_KEY = "accepted_connections_routingKey";
 
     @Bean
-    public Queue queue(){
+    public Queue queue() {
         return new Queue(CONNECTION_QUEUE);
     }
 
     @Bean
-    public TopicExchange exchange(){
+    public Queue repliesQueue() {
+        return new Queue(ACCEPTED_CONNECTIONS_QUEUE);
+    }
+
+    @Bean
+    public TopicExchange exchange() {
         return new TopicExchange(EXCHANGE);
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange){
+    public Binding firstBinding(Queue queue, TopicExchange exchange) {
         return BindingBuilder
                 .bind(queue)
                 .to(exchange)
-                .with(ROUTING_KEY);
+                .with(CONNECTION_ROUTING_KEY);
     }
 
     @Bean
-    public MessageConverter messageConverter(){
+    public Binding secondBinding(Queue repliesQueue, TopicExchange exchange) {
+        return BindingBuilder
+                .bind(repliesQueue)
+                .to(exchange)
+                .with(ACCEPTED_CONNECTIONS_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
     @Bean
-    public AmqpTemplate template(ConnectionFactory connectionFactory){
+    public AmqpTemplate template(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());
         return template;
     }
-
-
 }
 
