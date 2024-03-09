@@ -8,14 +8,13 @@ import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.security.PublicKey;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+
 
 public class RabbitMQCommunication implements Communication {
 
     private RabbitTemplate rabbitTemplate;
     private SharedConfig sharedConfig;
-    private CompletableFuture<Integer> receivedIdFuture = new CompletableFuture<>();
+    //private CompletableFuture<Integer> receivedIdFuture = new CompletableFuture<>();
     private int networkSize;
 
 
@@ -41,19 +40,19 @@ public class RabbitMQCommunication implements Communication {
         try{
             System.out.println("Sending message");
             sharedConfig.setPublicKey(pubKey);
-            String a = "thi is ";
-            //conversion of public key
-            rabbitTemplate.convertAndSend(MQConfig.EXCHANGE, MQConfig.CONNECTION_ROUTING_KEY, a);
+            String publicKeyAsString = pubKey.toString();
+            rabbitTemplate.convertAndSend(MQConfig.CONNECT_REQUEST_EXCHANGE, "", publicKeyAsString);
         } catch (Exception e){
             e.printStackTrace();
         }
 
-        try {
-            return receivedIdFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return -1;
-        }
+//        try {
+//            //return receivedIdFuture.get();
+//        } catch (InterruptedException | ExecutionException e) {
+//            e.printStackTrace();
+//            return -1;
+//        }
+        return -1;
     }
 
 

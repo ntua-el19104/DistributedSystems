@@ -11,41 +11,40 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MQConfig {
 
-    public static final String CONNECTION_QUEUE = "connection_queue";
-    public static final String ACCEPTED_CONNECTIONS_QUEUE = "accepted_connections_queue";
-    public static final String EXCHANGE = "connection_exchange";
-    public static final String CONNECTION_ROUTING_KEY = "connection_routingKey";
-    public static final String ACCEPTED_CONNECTIONS_ROUTING_KEY = "accepted_connections_routingKey";
+    public static final String CONNECT_REQUEST_EXCHANGE = "connect_request_exchange";
+    public static final String CONNECT_REQUEST_QUEUE = "connect_request_queue";
+
+    public static final String CONNECT_ACCEPT_EXCHANGE = "connect_accept_exchange";
+    public static final String CONNECT_ACCEPT_QUEUE = "connect_accept_queue";
 
     @Bean
-    public Queue queue() {
-        return new Queue(CONNECTION_QUEUE);
+    public FanoutExchange connectRequestExchange() {
+        return new FanoutExchange(CONNECT_REQUEST_EXCHANGE);
     }
 
     @Bean
-    public Queue repliesQueue() {
-        return new Queue(ACCEPTED_CONNECTIONS_QUEUE);
+    public Queue connectRequestQueue() {
+        return new AnonymousQueue();
     }
 
     @Bean
-    public TopicExchange exchange() {
-        return new TopicExchange(EXCHANGE);
+    public Binding connectRequestBinding(Queue connectRequestQueue, FanoutExchange connectRequestExchange) {
+        return BindingBuilder.bind(connectRequestQueue).to(connectRequestExchange);
     }
 
     @Bean
-    public Binding firstBinding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder
-                .bind(queue)
-                .to(exchange)
-                .with(CONNECTION_ROUTING_KEY);
+    public FanoutExchange connectAcceptExchange() {
+        return new FanoutExchange(CONNECT_ACCEPT_EXCHANGE);
     }
 
     @Bean
-    public Binding secondBinding(Queue repliesQueue, TopicExchange exchange) {
-        return BindingBuilder
-                .bind(repliesQueue)
-                .to(exchange)
-                .with(ACCEPTED_CONNECTIONS_ROUTING_KEY);
+    public Queue connectAcceptQueue() {
+        return new AnonymousQueue();
+    }
+
+    @Bean
+    public Binding connectAcceptBinding(Queue connectAcceptQueue, FanoutExchange connectAcceptExchange) {
+        return BindingBuilder.bind(connectAcceptQueue).to(connectAcceptExchange);
     }
 
     @Bean
@@ -60,4 +59,3 @@ public class MQConfig {
         return template;
     }
 }
-

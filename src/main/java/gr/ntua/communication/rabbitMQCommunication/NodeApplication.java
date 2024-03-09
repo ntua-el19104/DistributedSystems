@@ -26,7 +26,7 @@ public class NodeApplication {
     public static void main(String[] args) {
         SpringApplication.run(NodeApplication.class, args);
         isBootstrap = Boolean.parseBoolean(args[0]);
-
+        sharedConfig.setBootstrap(isBootstrap);
         RabbitMQCommunication rabbitMQCommunication = new RabbitMQCommunication(rabbitTemplate, sharedConfig);
         Node node = new Node(rabbitMQCommunication);
         if (isBootstrap) {
@@ -34,6 +34,8 @@ public class NodeApplication {
             node.setId(0);
         } else
             node.connectToBlockchat();
+
+        System.out.println("Node has id:" + node.getId());
 
     }
 
