@@ -26,27 +26,29 @@ public class AcceptConnectionsConsumer {
     public AcceptConnectionsConsumer(RabbitTemplate rabbitTemplate, SharedConfig sharedConfig) {
         this.rabbitTemplate = rabbitTemplate;
         this.sharedConfig = sharedConfig;
-        this.networkSize = 0;
+        this.networkSize = 1;
     }
 
     @RabbitListener(queues = "#{connectRequestQueue.name}")
     public void bootstrapListener(byte[] publicKeyBytes) {
-        if (sharedConfig.getNode().isBootstrap()) {
+        if (sharedConfig.getNode().isBootstrap() && networkSize < sharedConfig.getMaxNetworkSize()) {
             networkSize++;
             log.info("Bootstrap received another node request-the network size now is:" + networkSize);
             PublicKey receivedPublicKey = CommunicationUtils.fromBytesToPK(publicKeyBytes);
             sharedConfig.getNode().addAddress(receivedPublicKey);
-            int id = networkSize;
-            rabbitTemplate.convertAndSend(MQConfig.CONNECT_ACCEPT_EXCHANGE, "", new ConnectionReply(id, publicKeyBytes));
-            //if id == networkSize then broadcast the NodeInfo of all nodes and
-            //the blockchain to all nodes
+            rabbitTemplate.convertAndSend(MQConfig.CONNECT_ACCEPT_EXCHANGE, "", new ConnectionReply(networkSize - 1, publicKeyBytes));
+            if (networkSize == sharedConfig.getMaxNetworkSize()) {
+                log.info("All nodes connected!");
+                sharedConfig.allNodesConnectedComplete();
+            }
+        }else if(sharedConfig.getNode().isBootstrap() && networkSize == sharedConfig.getMaxNetworkSize()){
+            log.info("Another node attempted to connect");
         }
     }
 
     @RabbitListener(queues = "#{connectAcceptQueue.name}")
     public void receiveConnectionReply(ConnectionReply connectionReply) {
         PublicKey receivedPublicKey = CommunicationUtils.fromBytesToPK(connectionReply.getPublicKey());
-        log.info("Received id for node with public key " + receivedPublicKey.toString());
         if (receivedPublicKey.equals(sharedConfig.getNodePublicKey())) {
             log.info("Received my id. It's : " + connectionReply.getNodeId());
             int receivedId = connectionReply.getNodeId();

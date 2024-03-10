@@ -1,6 +1,7 @@
 package gr.ntua.communication.rabbitMQCommunication;
 
 import gr.ntua.blockchainService.Block;
+import gr.ntua.blockchainService.Node;
 import gr.ntua.blockchainService.Transaction;
 import gr.ntua.communication.Communication;
 import gr.ntua.communication.rabbitMQCommunication.configurations.MQConfig;
@@ -38,17 +39,27 @@ public class RabbitMQCommunication implements Communication {
 
     @Override
     public int connectToBlockchat(PublicKey pubKey) {
-        try {
-            log.info("Sending message to bootstrap to connect - through rabbitMQ");
-            sharedConfig.setNodePublicKey(pubKey);
-            byte[] publicKeyBytes = pubKey.getEncoded();
-            rabbitTemplate.convertAndSend(MQConfig.CONNECT_REQUEST_EXCHANGE, "", publicKeyBytes);
-            return sharedConfig.getReceivedId().get();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Error("The node id couldn't be set!");
+        sharedConfig.setNodePublicKey(pubKey);
+        Node node = sharedConfig.getNode();
+        if (node.isBootstrap()) {
+            node.addAddress(pubKey);
+            System.out.println("Bootstrap will be waiting for all nodes to connect");
+            return 0;
         }
+        else {
+            try {
+                log.info("Sending message to bootstrap to connect - through rabbitMQ");
+                byte[] publicKeyBytes = pubKey.getEncoded();
+                rabbitTemplate.convertAndSend(MQConfig.CONNECT_REQUEST_EXCHANGE, "", publicKeyBytes);
 
+                //TODO add timeout so that the node does not wait forever if an error occurs
+                int id = sharedConfig.getReceivedId().get();
+                return id;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new Error("Unable to set the node id. Reason: " + e.getMessage());
+            }
+        }
     }
 
 

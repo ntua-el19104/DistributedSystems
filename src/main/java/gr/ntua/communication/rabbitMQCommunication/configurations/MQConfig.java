@@ -13,7 +13,9 @@ public class MQConfig {
 
     public static final String CONNECT_REQUEST_EXCHANGE = "connect_request_exchange";
     public static final String CONNECT_ACCEPT_EXCHANGE = "connect_accept_exchange";
+    public static final String NODES_ADDRESSES_EXCHANGE = "nodes_addresses_exchange";
 
+    //REGULAR NODE =====================================================================
     @Bean
     public FanoutExchange connectRequestExchange() {
         return new FanoutExchange(CONNECT_REQUEST_EXCHANGE);
@@ -29,6 +31,8 @@ public class MQConfig {
         return BindingBuilder.bind(connectRequestQueue).to(connectRequestExchange);
     }
 
+
+    //BOOTSTRAP NODE =====================================================================
     @Bean
     public FanoutExchange connectAcceptExchange() {
         return new FanoutExchange(CONNECT_ACCEPT_EXCHANGE);
@@ -44,6 +48,7 @@ public class MQConfig {
         return BindingBuilder.bind(connectAcceptQueue).to(connectAcceptExchange);
     }
 
+    //FOR ANY TYPE OF NODE ===============================================================
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();

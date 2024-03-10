@@ -2,10 +2,12 @@ package gr.ntua.communication.rabbitMQCommunication;
 
 import gr.ntua.blockchainService.Node;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@Slf4j
 @SpringBootApplication
 public class NodeApplication {
 
@@ -22,15 +24,24 @@ public class NodeApplication {
     public static void main(String[] args) {
         SpringApplication.run(NodeApplication.class, args);
         Boolean isBootstrap = Boolean.parseBoolean(args[0]);
+        int maxNetworkSize = Integer.parseInt(args[1]);
+
         Node node = new Node(rabbitMQCommunication, isBootstrap);
         sharedConfig.setNode(node);
-        if (isBootstrap) {
-            node.setId(0);
-        } else
-            node.connectToBlockchat();
-
+        sharedConfig.setMaxNetworkSize(maxNetworkSize);
+        node.connectToBlockchat();
         System.out.println("Node has id: " + node.getId());
+
+        if (isBootstrap){
+            try {
+                sharedConfig.getAllNodesConnected().get();
+            } catch(Exception e){
+                log.error(e.toString());
+            }
+            System.out.println("Bootstrap stops listening for new nodes");
+        }
 
     }
 
 }
+
