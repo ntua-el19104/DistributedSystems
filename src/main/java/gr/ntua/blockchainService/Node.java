@@ -23,16 +23,16 @@ public class Node {
   private int id;
   Communication communication;
   private List<Transaction> pending = new ArrayList<>();
-  private Boolean isBootstrap;
+  private boolean isBootstrap;
 
-  public Node(Communication communication) {
+  public Node(Communication communication, boolean isBootstrap) {
     this.communication = communication;
     this.nonce = 0;
     generateWallet();
     this.block = new Block();
     this.blockchain = new ArrayList<>();
     this.id = -1;
-    this.isBootstrap = false;
+    this.isBootstrap = isBootstrap;
   }
 
   // CORE FUNCTIONS --------------------------------------------------------------------------------

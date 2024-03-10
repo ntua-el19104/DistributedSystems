@@ -8,11 +8,11 @@ import gr.ntua.communication.ClassInstancesCommunication;
 public class Main {
     public static void main(String[] args) {
         ClassInstancesCommunication comm = new ClassInstancesCommunication();
-        Node node1 = new Node(comm);
+        Node node1 = new Node(comm,true);
         comm.addNode(node1);
         node1.connectToBlockchat();
 
-        Node node2 = new Node(comm);
+        Node node2 = new Node(comm,false);
         comm.addNode(node2);
         node2.connectToBlockchat();
         comm.broadcastAddresses();

@@ -12,10 +12,7 @@ import org.springframework.context.annotation.Configuration;
 public class MQConfig {
 
     public static final String CONNECT_REQUEST_EXCHANGE = "connect_request_exchange";
-    public static final String CONNECT_REQUEST_QUEUE = "connect_request_queue";
-
     public static final String CONNECT_ACCEPT_EXCHANGE = "connect_accept_exchange";
-    public static final String CONNECT_ACCEPT_QUEUE = "connect_accept_queue";
 
     @Bean
     public FanoutExchange connectRequestExchange() {

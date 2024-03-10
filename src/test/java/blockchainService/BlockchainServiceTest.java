@@ -20,8 +20,11 @@ public class BlockchainServiceTest {
     @BeforeEach
     public void blockchainSetup() {
         communication = new ClassInstancesCommunication();
-        for(int i=0; i < NUMBER_OF_NODES; i++) {
-            Node node = new Node(communication);
+        Node node1 = new Node(communication, true);
+        communication.addNode(node1);
+        node1.connectToBlockchat();
+        for (int i = 0; i < NUMBER_OF_NODES; i++) {
+            Node node = new Node(communication, false);
             communication.addNode(node);
             node.connectToBlockchat();
         }
@@ -32,13 +35,13 @@ public class BlockchainServiceTest {
     public void test() {
         final Node bootstrapNode = communication.getNodesList().get(0);
         assertEquals(communication.getNodesList().size(), NUMBER_OF_NODES);
-        for(int i=0; i<NUMBER_OF_NODES; i++) {
+        for (int i = 0; i < NUMBER_OF_NODES; i++) {
             System.out.println(communication.getNodesList().get(i));
         }
 
         Block genesis = bootstrapNode.createGenesisBlock();
-        communication.broadcastBlock(genesis,-1);
-        for(int i=0; i<NUMBER_OF_NODES; i++) {
+        communication.broadcastBlock(genesis, -1);
+        for (int i = 0; i < NUMBER_OF_NODES; i++) {
             System.out.println(communication.getNodesList().get(i).getBlockchain());
         }
     }
