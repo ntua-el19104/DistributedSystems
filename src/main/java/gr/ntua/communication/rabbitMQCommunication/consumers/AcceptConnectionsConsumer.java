@@ -1,5 +1,7 @@
 package gr.ntua.communication.rabbitMQCommunication.consumers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.ntua.communication.rabbitMQCommunication.configurations.MQConfig;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
 import gr.ntua.communication.rabbitMQCommunication.entities.ConnectionReply;
@@ -11,7 +13,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
+import java.util.List;
 
 @Component
 @Setter
@@ -28,7 +32,7 @@ public class AcceptConnectionsConsumer {
         this.sharedConfig = sharedConfig;
         this.networkSize = 1;
     }
-
+    //BOOTSTRAP===============================================
     @RabbitListener(queues = "#{connectRequestQueue.name}")
     public void bootstrapListener(byte[] publicKeyBytes) {
         if (sharedConfig.getNode().isBootstrap() && networkSize < sharedConfig.getMaxNetworkSize()) {
@@ -45,7 +49,7 @@ public class AcceptConnectionsConsumer {
             log.info("Another node attempted to connect");
         }
     }
-
+    //REGULAR NODE===============================================
     @RabbitListener(queues = "#{connectAcceptQueue.name}")
     public void receiveConnectionReply(ConnectionReply connectionReply) {
         PublicKey receivedPublicKey = CommunicationUtils.fromBytesToPK(connectionReply.getPublicKey());
@@ -53,6 +57,15 @@ public class AcceptConnectionsConsumer {
             log.info("Received my id. It's : " + connectionReply.getNodeId());
             int receivedId = connectionReply.getNodeId();
             sharedConfig.setNodeId(receivedId);
+        }
+    }
+
+    @RabbitListener(queues = "#{nodesAddressesQueue.name}")
+    public void receiveAllNodesAddresses(byte[] publicKeyListBytes){
+        if (!sharedConfig.getNode().isBootstrap()){
+            List<PublicKey> addresses = CommunicationUtils.fromBytesToPublicKeyList(publicKeyListBytes);
+            sharedConfig.getNode().setAddresses(addresses);
+            log.info("I set the addresses for all nodes");
         }
     }
 }

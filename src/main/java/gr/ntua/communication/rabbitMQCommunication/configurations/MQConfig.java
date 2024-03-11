@@ -50,6 +50,21 @@ public class MQConfig {
 
     //FOR ANY TYPE OF NODE ===============================================================
     @Bean
+    public FanoutExchange nodesAddressesExchange() {
+        return new FanoutExchange(NODES_ADDRESSES_EXCHANGE);
+    }
+
+    @Bean
+    public Queue nodesAddressesQueue() {
+        return new AnonymousQueue();
+    }
+
+    @Bean
+    public Binding nodesAddressesBinding(Queue nodesAddressesQueue, FanoutExchange nodesAddressesExchange) {
+        return BindingBuilder.bind(nodesAddressesQueue).to(nodesAddressesExchange);
+    }
+
+    @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }

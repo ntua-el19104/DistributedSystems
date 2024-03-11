@@ -35,6 +35,7 @@ public class NodeApplication {
         if (isBootstrap){
             try {
                 sharedConfig.getAllNodesConnected().get();
+                rabbitMQCommunication.broadcastAddresses();
             } catch(Exception e){
                 log.error(e.toString());
             }

@@ -6,6 +6,7 @@ import gr.ntua.blockchainService.Transaction;
 import gr.ntua.communication.Communication;
 import gr.ntua.communication.rabbitMQCommunication.configurations.MQConfig;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
+import gr.ntua.communication.rabbitMQCommunication.utils.CommunicationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,9 @@ public class RabbitMQCommunication implements Communication {
 
     @Override
     public void broadcastAddresses() {
-
+        byte[] publicKeyListBytes = CommunicationUtils.fromPublicKeyListToBytes(sharedConfig.getNode().getAddresses());
+        rabbitTemplate.convertAndSend(MQConfig.NODES_ADDRESSES_EXCHANGE,"",publicKeyListBytes);
+        log.info("I sent the addresses to all nodes");
     }
 
     @Override
