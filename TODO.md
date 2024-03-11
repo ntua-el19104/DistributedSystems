@@ -11,5 +11,8 @@
 - [ ] Add a timeout in the node's waiting for the id
 - [ ] Handle the scenario where a node disconnects and tries to reconnect
 - [ ] Handle the case where a node tries to connect, bootstrap sends him his id,
-but he never receives it. Also, the last node may take the addresses message before 
-he takes hid id. Is that a problem ?
+but he never receives it. 
+- [ ] When the connection is finished, implement a procedure so that all nodes
+know that the network is established, and now they can send transactions. Also, it
+must be forbidden to send a transaction when the network isn't finished yet.
+- [ ] Divide the bootstrap code from the regular nodes' code.

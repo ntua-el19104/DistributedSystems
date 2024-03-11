@@ -1,5 +1,6 @@
 package gr.ntua.communication.rabbitMQCommunication;
 
+import gr.ntua.blockchainService.Block;
 import gr.ntua.blockchainService.Node;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +36,13 @@ public class NodeApplication {
         if (isBootstrap){
             try {
                 sharedConfig.getAllNodesConnected().get();
+                System.out.println("Bootstrap stops listening for new nodes. Network is full.");
                 rabbitMQCommunication.broadcastAddresses();
+                Block genesis = node.createGenesisBlock();
+                rabbitMQCommunication.broadcastBlock(genesis,-1);
             } catch(Exception e){
-                log.error(e.toString());
+                e.printStackTrace();
             }
-            System.out.println("Bootstrap stops listening for new nodes");
         }
 
     }

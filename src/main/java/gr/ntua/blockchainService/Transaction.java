@@ -1,10 +1,14 @@
 package gr.ntua.blockchainService;
 
 import gr.ntua.utils.TransactionUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.security.PublicKey;
 import java.util.Base64;
 
+@Getter
+@AllArgsConstructor
 public class Transaction {
     private double amount;
     private PublicKey senderAddress;

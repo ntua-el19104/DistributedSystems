@@ -1,12 +1,17 @@
 package gr.ntua.blockchainService;
 
 import gr.ntua.utils.TransactionUtils;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
+@NoArgsConstructor
 public class Block {
     private final int CAPACITY = 10;
     private int index;

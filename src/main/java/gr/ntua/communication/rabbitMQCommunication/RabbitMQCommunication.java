@@ -6,9 +6,11 @@ import gr.ntua.blockchainService.Transaction;
 import gr.ntua.communication.Communication;
 import gr.ntua.communication.rabbitMQCommunication.configurations.MQConfig;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
+import gr.ntua.communication.rabbitMQCommunication.entities.BlockMessage;
 import gr.ntua.communication.rabbitMQCommunication.utils.CommunicationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +38,7 @@ public class RabbitMQCommunication implements Communication {
     @Override
     public void broadcastAddresses() {
         byte[] publicKeyListBytes = CommunicationUtils.fromPublicKeyListToBytes(sharedConfig.getNode().getAddresses());
-        rabbitTemplate.convertAndSend(MQConfig.NODES_ADDRESSES_EXCHANGE,"",publicKeyListBytes);
+        rabbitTemplate.convertAndSend(MQConfig.NODES_ADDRESSES_EXCHANGE, "", publicKeyListBytes);
         log.info("I sent the addresses to all nodes");
     }
 
@@ -48,8 +50,7 @@ public class RabbitMQCommunication implements Communication {
             node.addAddress(pubKey);
             System.out.println("Bootstrap will be waiting for all nodes to connect");
             return 0;
-        }
-        else {
+        } else {
             try {
                 log.info("Sending message to bootstrap to connect - through rabbitMQ");
                 byte[] publicKeyBytes = pubKey.getEncoded();
@@ -68,6 +69,15 @@ public class RabbitMQCommunication implements Communication {
 
     @Override
     public void broadcastBlock(Block block, int id) {
+        try {
+            BlockMessage blockMessage = new BlockMessage(id, block);
+            byte[] toSend = SerializationUtils.serialize(blockMessage);
+            rabbitTemplate.convertAndSend(MQConfig.BLOCK_EXCHANGE, "", toSend);
+            log.info("I have sent a block to all nodes - broadcastBlock");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 
