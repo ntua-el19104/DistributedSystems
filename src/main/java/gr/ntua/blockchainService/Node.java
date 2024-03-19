@@ -123,6 +123,7 @@ public class Node {
                 communication.broadcastBlock(block, id);
                 try {
                   validator = (id == getValidator(block.getCurrentHash()));
+                  block = new Block();
                 } catch (Exception ex){
                   ex.printStackTrace();
                 }
@@ -249,6 +250,8 @@ public class Node {
         }
         pendingListLock.unlock();
         this.validator = (id==getValidator(block.getCurrentHash()));
+        block = new Block();
+        constructBlock();
     }
 
     public int getValidator(byte[] hash) throws Exception {
