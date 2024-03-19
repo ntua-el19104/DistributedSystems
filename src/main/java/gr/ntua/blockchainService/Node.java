@@ -57,6 +57,7 @@ public class Node {
         if (rid == -2) throw new Exception("Receiver does not exist");
         transaction.setReceiverId(rid);
         nonce++;
+        signTransaction(transaction);
         return transaction;
     }
 
