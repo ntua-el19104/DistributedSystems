@@ -53,7 +53,6 @@ public class QueueConsumers {
         }
     }
 
-    //REGULAR NODE===============================================
     @RabbitListener(queues = "#{connectAcceptQueue.name}")
     public void receiveConnectionReply(ConnectionReply connectionReply) {
         //BOOTSTRAP============================
@@ -81,6 +80,7 @@ public class QueueConsumers {
         }
     }
 
+    //REGULAR NODE==================================================
     @RabbitListener(queues = "#{nodesAddressesQueue.name}")
     public void receiveAllNodesAddresses(byte[] publicKeyListBytes) {
         if (!sharedConfig.getNode().isBootstrap()) {
@@ -106,6 +106,7 @@ public class QueueConsumers {
         }
     }
 
+    //BOTH BOOTSTRAP AND REGULAR NODES==============================
     @RabbitListener(queues = "#{transactionQueue.name}")
     public void receiveTransaction(byte[] transactionMessageBytes) {
         TransactionMessage transactionMessage = (TransactionMessage) SerializationUtils.deserialize(transactionMessageBytes);
