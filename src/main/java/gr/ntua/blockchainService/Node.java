@@ -107,8 +107,8 @@ public class Node {
      */
     public void constructBlock() {
         int counter = 0;
-        pendingListLock.lock();
         while(validator) {
+          pendingListLock.lock();
           while (!pending.isEmpty()) {
             Transaction current = pending.get(0);
             if (validateTransaction(current)) {
