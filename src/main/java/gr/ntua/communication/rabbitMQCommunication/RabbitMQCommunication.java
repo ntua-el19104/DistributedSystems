@@ -7,6 +7,7 @@ import gr.ntua.communication.Communication;
 import gr.ntua.communication.rabbitMQCommunication.configurations.MQConfig;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
 import gr.ntua.communication.rabbitMQCommunication.entities.BlockMessage;
+import gr.ntua.communication.rabbitMQCommunication.entities.TransactionMessage;
 import gr.ntua.communication.rabbitMQCommunication.utils.CommunicationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -29,10 +30,16 @@ public class RabbitMQCommunication implements Communication {
         this.sharedConfig = sharedConfig;
     }
 
-
     @Override
     public void broadcastTransaction(Transaction transaction) {
-
+        try {
+            TransactionMessage transactionMessage = new TransactionMessage(transaction);
+            byte[] toSend = SerializationUtils.serialize(transactionMessage);
+            rabbitTemplate.convertAndSend(MQConfig.TRANSACTION_EXCHANGE, "", toSend);
+            log.info("I have sent a transaction to all nodes - broadcastTransaction");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -66,7 +73,6 @@ public class RabbitMQCommunication implements Communication {
         }
     }
 
-
     @Override
     public void broadcastBlock(Block block, int id) {
         try {
@@ -77,8 +83,6 @@ public class RabbitMQCommunication implements Communication {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
-
 
 }

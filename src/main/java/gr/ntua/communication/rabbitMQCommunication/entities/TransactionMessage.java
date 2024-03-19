@@ -2,12 +2,16 @@ package gr.ntua.communication.rabbitMQCommunication.entities;
 
 import gr.ntua.blockchainService.Transaction;
 import gr.ntua.communication.rabbitMQCommunication.utils.CommunicationUtils;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.security.PublicKey;
 
 @NoArgsConstructor
+@Getter
+@ToString
 public class TransactionMessage implements Serializable {
     private static final long serialVersionUID = 1L;
     private double amount;

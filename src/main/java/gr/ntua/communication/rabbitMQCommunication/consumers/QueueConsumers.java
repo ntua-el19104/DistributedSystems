@@ -4,14 +4,15 @@ import gr.ntua.communication.rabbitMQCommunication.configurations.MQConfig;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
 import gr.ntua.communication.rabbitMQCommunication.entities.BlockMessage;
 import gr.ntua.communication.rabbitMQCommunication.entities.ConnectionReply;
+import gr.ntua.communication.rabbitMQCommunication.entities.TransactionMessage;
 import gr.ntua.communication.rabbitMQCommunication.utils.CommunicationUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.amqp.utils.SerializationUtils;
 
 import java.security.PublicKey;
 import java.util.Arrays;
@@ -34,34 +35,34 @@ public class QueueConsumers {
         this.networkSize = 1;
         this.connected = 1;
     }
+
     //BOOTSTRAP===============================================
     @RabbitListener(queues = "#{connectRequestQueue.name}")
     public void bootstrapListener(byte[] publicKeyBytes) {
         if (sharedConfig.getNode().isBootstrap() && networkSize < sharedConfig.getMaxNetworkSize()) {
             networkSize++;
-            log.info("Bootstrap received new connect request-the network size now is:" + networkSize);
+            log.info("Bootstrap received new connect request-we have now " + networkSize + " connect requests:");
             PublicKey receivedPublicKey = CommunicationUtils.fromBytesToPK(publicKeyBytes);
             sharedConfig.getNode().addAddress(receivedPublicKey);
             rabbitTemplate.convertAndSend(MQConfig.CONNECT_ACCEPT_EXCHANGE, "", new ConnectionReply(networkSize - 1, publicKeyBytes));
             if (networkSize == sharedConfig.getMaxNetworkSize()) {
                 log.info("All nodes requested connection!");
             }
-        }else if(sharedConfig.getNode().isBootstrap() && networkSize == sharedConfig.getMaxNetworkSize()){
+        } else if (sharedConfig.getNode().isBootstrap() && networkSize == sharedConfig.getMaxNetworkSize()) {
             log.info("Another node attempted to connect");
         }
     }
+
     //REGULAR NODE===============================================
     @RabbitListener(queues = "#{connectAcceptQueue.name}")
     public void receiveConnectionReply(ConnectionReply connectionReply) {
         //BOOTSTRAP============================
-        //TODO this does not work properly. When we divide the bootstrap code from all
-        //TODO the other code this problem will be solved.
         byte[] byteArray = new byte[2];
         Arrays.fill(byteArray, (byte) 0);
-        if (Arrays.equals(connectionReply.getPublicKey(), byteArray)){
+        if (Arrays.equals(connectionReply.getPublicKey(), byteArray) && sharedConfig.getNode().isBootstrap()) {
             connected++;
-            if (connected == sharedConfig.getMaxNetworkSize())
-            {
+            log.info("New node has sent connection reply. Successfully connected nodes: " + connected);
+            if (connected == sharedConfig.getMaxNetworkSize()) {
                 sharedConfig.allNodesConnectedComplete();
                 log.info("All nodes have been successfully connected!");
             }
@@ -69,18 +70,20 @@ public class QueueConsumers {
             return;
         }
         //REGULAR NODE=========================
-        PublicKey receivedPublicKey = CommunicationUtils.fromBytesToPK(connectionReply.getPublicKey());
-        if (receivedPublicKey.equals(sharedConfig.getNodePublicKey())) {
-            log.info("Received my id. It's : " + connectionReply.getNodeId());
-            int receivedId = connectionReply.getNodeId();
-            sharedConfig.setNodeId(receivedId);
-            rabbitTemplate.convertAndSend(MQConfig.CONNECT_ACCEPT_EXCHANGE,"",new ConnectionReply(receivedId, byteArray));
+        if (!Arrays.equals(connectionReply.getPublicKey(), byteArray)) {
+            PublicKey receivedPublicKey = CommunicationUtils.fromBytesToPK(connectionReply.getPublicKey());
+            if (receivedPublicKey.equals(sharedConfig.getNodePublicKey())) {
+                log.info("Received my id. It's : " + connectionReply.getNodeId());
+                int receivedId = connectionReply.getNodeId();
+                sharedConfig.setNodeId(receivedId);
+                rabbitTemplate.convertAndSend(MQConfig.CONNECT_ACCEPT_EXCHANGE, "", new ConnectionReply(receivedId, byteArray));
+            }
         }
     }
 
     @RabbitListener(queues = "#{nodesAddressesQueue.name}")
-    public void receiveAllNodesAddresses(byte[] publicKeyListBytes){
-        if (!sharedConfig.getNode().isBootstrap()){
+    public void receiveAllNodesAddresses(byte[] publicKeyListBytes) {
+        if (!sharedConfig.getNode().isBootstrap()) {
             List<PublicKey> addresses = CommunicationUtils.fromBytesToPublicKeyList(publicKeyListBytes);
             sharedConfig.getNode().setAddresses(addresses);
             sharedConfig.getNode().setNodeinfo();
@@ -96,13 +99,26 @@ public class QueueConsumers {
         if (blockMessage.getId() != sharedConfig.getNode().getId()) {
             try {
                 sharedConfig.getNode().addBlock(blockMessage.toBlock());
-            } catch (Exception e){
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             log.info("Added new block to my blockchain");
         }
     }
 
+    @RabbitListener(queues = "#{transactionQueue.name}")
+    public void receiveTransaction(byte[] transactionMessageBytes) {
+        TransactionMessage transactionMessage = (TransactionMessage) SerializationUtils.deserialize(transactionMessageBytes);
+        log.info("Received a transaction message from node:" + transactionMessage.getSenderId());
+        System.out.println("The transaction i received is: " + transactionMessage.toString());
+        try {
+            sharedConfig.getNode().addPendingTransaction(transactionMessage.toTransaction());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        log.info("Added received transaction to pending transactions list");
+
+    }
 
 
 }

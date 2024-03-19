@@ -15,6 +15,7 @@ public class MQConfig {
     public static final String CONNECT_ACCEPT_EXCHANGE = "connect_accept_exchange";
     public static final String NODES_ADDRESSES_EXCHANGE = "nodes_addresses_exchange";
     public static final String BLOCK_EXCHANGE = "block_exchange";
+    public static final String TRANSACTION_EXCHANGE = "transaction_exchange";
 
     //REGULAR NODE =====================================================================
     @Bean
@@ -78,6 +79,21 @@ public class MQConfig {
     @Bean
     public Binding blockBinding(Queue blockQueue, FanoutExchange blockExchange) {
         return BindingBuilder.bind(blockQueue).to(blockExchange);
+    }
+
+    @Bean
+    public FanoutExchange transactionExchange() {
+        return new FanoutExchange(TRANSACTION_EXCHANGE);
+    }
+
+    @Bean
+    public Queue transactionQueue() {
+        return new AnonymousQueue();
+    }
+
+    @Bean
+    public Binding transactionBinding(Queue transactionQueue, FanoutExchange transactionExchange) {
+        return BindingBuilder.bind(transactionQueue).to(transactionExchange);
     }
 
     @Bean
