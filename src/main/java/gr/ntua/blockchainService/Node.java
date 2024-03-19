@@ -28,6 +28,8 @@ public class Node {
     private boolean isBootstrap;
     private ReentrantLock pendingListLock;
 
+    private boolean validator;
+
     public Node(Communication communication, boolean isBootstrap) {
         this.communication = communication;
         this.nonce = 0;
@@ -105,23 +107,31 @@ public class Node {
     public void constructBlock() {
         int counter = 0;
         pendingListLock.lock();
-        while (!pending.isEmpty()) {
+        while(validator) {
+          while (!pending.isEmpty()) {
             Transaction current = pending.get(0);
             if (validateTransaction(current)) {
+              try {
+                block.addTransaction(current);
+                updateBalance(current, id);
+                counter++;
+                pending.remove(0);
+              } catch (Exception e) {
+                mintBlock();
+                blockchain.add(block);
+                communication.broadcastBlock(block, id);
                 try {
-                    block.addTransaction(current);
-                    updateBalance(current, id);
-                    counter++;
-                    pending.remove(0);
-                } catch (Exception e) {
-                    mintBlock();
-                    blockchain.add(block);
-                    communication.broadcastBlock(block, id);
-                    break;
+                  validator = (id == getValidator(block.getCurrentHash()));
+                } catch (Exception ex){
+                  ex.printStackTrace();
                 }
+                break;
+              } finally {
+                pendingListLock.unlock();
+              }
             }
+          }
         }
-        pendingListLock.unlock();
         System.out.println(counter + " Transactions were added");
     }
 
@@ -237,6 +247,7 @@ public class Node {
             pending.remove(i);
         }
         pendingListLock.unlock();
+        this.validator = (id==getValidator(block.getCurrentHash()));
     }
 
     public int getValidator(byte[] hash) throws Exception {
