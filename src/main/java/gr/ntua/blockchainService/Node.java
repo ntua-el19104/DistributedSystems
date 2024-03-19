@@ -109,29 +109,28 @@ public class Node {
         int counter = 0;
         while(validator) {
           pendingListLock.lock();
-          while (!pending.isEmpty()) {
-            Transaction current = pending.get(0);
-            if (validateTransaction(current)) {
-              try {
-                block.addTransaction(current);
-                updateBalance(current, id);
-                counter++;
-                pending.remove(0);
-              } catch (Exception e) {
-                mintBlock();
-                blockchain.add(block);
-                communication.broadcastBlock(block, id);
-                try {
-                  validator = (id == getValidator(block.getCurrentHash()));
-                  block = new Block();
-                } catch (Exception ex){
-                  ex.printStackTrace();
-                }
-                break;
-              } finally {
-                pendingListLock.unlock();
+          try {
+              while (!pending.isEmpty()) {
+                  Transaction current = pending.get(0);
+                  if (validateTransaction(current) && nodeInfoList.get(current.getSenderId()).addNonce(current.getNonce())) {
+                      block.addTransaction(current);
+                      updateBalance(current, id);
+                      counter++;
+                  }
+                  pending.remove(0);
               }
+          }catch (Exception e) {
+            mintBlock();
+            blockchain.add(block);
+            communication.broadcastBlock(block, id);
+            try {
+                validator = (id == getValidator(block.getCurrentHash()));
+                block = new Block();
+            } catch (Exception ex){
+                ex.printStackTrace();
             }
+            }finally {
+              pendingListLock.unlock();
           }
         }
         System.out.println(counter + " Transactions were added");
@@ -203,23 +202,20 @@ public class Node {
     }
 
     // updates nodes info for every valid transaction and checks against replay attack(nonce)
-    public void updateBalance(Transaction transaction, int validator) throws Exception {
+    public void updateBalance(Transaction transaction, int validator)  {
         int rid = transaction.getReceiverId();
         int sid = transaction.getSenderId();
         double amount = transaction.getAmount();
-        int nonce = transaction.getNonce();
         if (sid == -1) {
             nodeInfoList.get(rid).setBalance(amount);
         } else if (rid == -1) {
             nodeInfoList.get(sid).setStake(amount);
             amount *= -1;
             nodeInfoList.get(sid).setBalance(amount);
-            if (!nodeInfoList.get(sid).addNonce(nonce)) throw new Exception("Invalid nonce");
         } else {
             nodeInfoList.get(rid).setBalance(amount);
             nodeInfoList.get(validator).setBalance(transaction.getFee());
             nodeInfoList.get(sid).setBalance(0 - amount - transaction.getFee());
-            if (!nodeInfoList.get(sid).addNonce(nonce)) throw new Exception("Invalid nonce");
         }
     }
 
@@ -244,13 +240,18 @@ public class Node {
         List<Transaction> list = block.getTransactionList();
         int validator = block.getValidator();
         pendingListLock.lock();
-        for (Transaction i : list) {
-            updateBalance(i, validator);
-            pending.remove(i);
+        try {
+            for (Transaction i : list) {
+                if (!nodeInfoList.get(i.getSenderId()).addNonce(i.getNonce()))
+                    throw new Exception("Node " + id + " found invalid nonce");
+                updateBalance(i, validator);
+                pending.remove(i);
+            }
+        }finally {
+            pendingListLock.unlock();
         }
-        pendingListLock.unlock();
         this.validator = (id==getValidator(block.getCurrentHash()));
-        block = new Block();
+        this.block = new Block();
         constructBlock();
     }
 
