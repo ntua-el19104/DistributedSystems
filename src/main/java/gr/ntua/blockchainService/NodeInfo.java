@@ -6,11 +6,7 @@ import java.util.*;
 public class NodeInfo {
     private double balance = 0;
 
-    private double temp_balance = 0;
-
     private double stake = 0;
-
-    private double temp_stake = 0;
 
     private LinkedList<Integer> noncesList = new LinkedList<>();
 
@@ -59,13 +55,6 @@ public class NodeInfo {
         return balance;
     }
 
-    public double getTempBalance() {
-        return temp_balance;
-    }
-
-    public void setTempBalance(double temp_balance) {
-        this.temp_balance += temp_balance;
-    }
 
     public int getAddress() {
         return address;
@@ -79,11 +68,5 @@ public class NodeInfo {
         this.stake += stake;
     }
 
-    public void setTempStake(double temp_stake) {
-        this.temp_stake += temp_stake;
-    }
 
-    public double getTempStake() {
-        return temp_stake;
-    }
 }

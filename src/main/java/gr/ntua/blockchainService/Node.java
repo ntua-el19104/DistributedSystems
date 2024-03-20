@@ -349,7 +349,7 @@ public class Node {
 
     public void printNodes() {
         for (NodeInfo temp : nodeInfoList) {
-            System.out.println(temp.getAddress() + " " + temp.getBalance() + " " + temp.getTempBalance());
+            System.out.println(temp.getAddress() + " " + temp.getBalance() + " " + temp.getStake());
         }
     }
 
