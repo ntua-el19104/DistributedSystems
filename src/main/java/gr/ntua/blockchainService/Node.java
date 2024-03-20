@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Setter
@@ -91,7 +90,6 @@ public class Node {
         block.setIndex(last.getIndex() + 1);
         block.setTimestamp(LocalDateTime.now());
         block.setValidator(id);
-        block.setIndex(last.getIndex() + 1);
         try {
             block.generateCurrentHash();
         } catch (Exception e) {
@@ -107,31 +105,32 @@ public class Node {
      */
     public void constructBlock() {
         int counter = 0;
-        while(validator) {
-          pendingListLock.lock();
-          try {
-              while (!pending.isEmpty()) {
-                  Transaction current = pending.get(0);
-                  if (validateTransaction(current) && nodeInfoList.get(current.getSenderId()).addNonce(current.getNonce())) {
-                      block.addTransaction(current);
-                      updateBalance(current, id);
-                      counter++;
-                  }
-                  pending.remove(0);
-              }
-          }catch (Exception e) {
-            mintBlock();
-            blockchain.add(block);
-            communication.broadcastBlock(block, id);
+        while (validator) {
+            pendingListLock.lock();
             try {
-                validator = (id == getValidator(block.getCurrentHash()));
-                block = new Block();
-            } catch (Exception ex){
-                ex.printStackTrace();
+                while (!pending.isEmpty()) {
+                    Transaction current = pending.get(0);
+                    System.out.println("I am the validator now.");
+                    if (validateTransaction(current) && nodeInfoList.get(current.getSenderId()).addNonce(current.getNonce())) {
+                        updateBalance(current, id);
+                        counter++;
+                        block.addTransaction(current);
+                    }
+                    pending.remove(0);
+                }
+            } catch (Exception e) {
+                mintBlock();
+                blockchain.add(block);
+                communication.broadcastBlock(block, id);
+                try {
+                    validator = (id == getValidator(block.getCurrentHash()));
+                    block = new Block();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            } finally {
+                pendingListLock.unlock();
             }
-            }finally {
-              pendingListLock.unlock();
-          }
         }
         System.out.println(counter + " Transactions were added");
     }
@@ -142,7 +141,8 @@ public class Node {
         }
         byte[] hash = blockchain.get(blockchain.size() - 1).getCurrentHash();
         int index = blockchain.get(blockchain.size() - 1).getIndex() + 1;
-        if (block.getPreviousHash() != hash || block.getIndex() != index) {
+        if (!Arrays.equals(block.getPreviousHash(), hash) || block.getIndex() != index) {
+            System.out.println("First false."); //debugging line
             return false;
         }
         try {
@@ -202,7 +202,7 @@ public class Node {
     }
 
     // updates nodes info for every valid transaction and checks against replay attack(nonce)
-    public void updateBalance(Transaction transaction, int validator)  {
+    public void updateBalance(Transaction transaction, int validator) {
         int rid = transaction.getReceiverId();
         int sid = transaction.getSenderId();
         double amount = transaction.getAmount();
@@ -214,7 +214,7 @@ public class Node {
             nodeInfoList.get(sid).setBalance(amount);
         } else {
             nodeInfoList.get(rid).setBalance(amount);
-            if(validator!=-1)
+            if (validator != -1)
                 nodeInfoList.get(validator).setBalance(transaction.getFee());
             nodeInfoList.get(sid).setBalance(0 - amount - transaction.getFee());
         }
@@ -243,15 +243,19 @@ public class Node {
         pendingListLock.lock();
         try {
             for (Transaction i : list) {
-                if (!nodeInfoList.get(i.getSenderId()).addNonce(i.getNonce()))
-                    throw new Exception("Node " + id + " found invalid nonce");
+                if (i.getSenderId() != -1) {
+                    if (!nodeInfoList.get(i.getSenderId()).addNonce(i.getNonce()))
+                        throw new Exception("Node " + id + " found invalid nonce");
+                }
                 updateBalance(i, validator);
-                pending.remove(i);
+                boolean isRemoved = pending.removeIf(t -> Arrays.equals(i.getTransactionIdHash(), t.getTransactionIdHash()));
+                System.out.println("IsRemoved: " + isRemoved);
             }
-        }finally {
+
+        } finally {
             pendingListLock.unlock();
         }
-        this.validator = (id==getValidator(block.getCurrentHash()));
+        this.validator = (id == getValidator(block.getCurrentHash()));
         this.block = new Block();
         constructBlock();
     }
@@ -304,12 +308,12 @@ public class Node {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        block.setValidator(0);
+        block.setValidator(-1);
         block.setIndex(0);
         return block;
     }
 
-    public void setNodeinfo() {
+    public void setNodeInfo() {
         this.nodeInfoList = new ArrayList<>();
         int i = 0;
         for (PublicKey publicKey : addresses) {
@@ -351,7 +355,7 @@ public class Node {
     public String viewState() {
         String result = "";
         for (NodeInfo temp : nodeInfoList) {
-            result += temp.getAddress() + " " + temp.getBalance() + " " + temp.getStake() +'\n';
+            result += temp.getAddress() + " " + temp.getBalance() + " " + temp.getStake() + '\n';
         }
         return result;
     }
@@ -361,7 +365,7 @@ public class Node {
         return "ID: " + id + "\n" + wallet.toString() + "\n";
     }
 
-    public String viewBlock(){
+    public String viewBlock() {
         return blockchain.get(blockchain.size() - 1).toString();
     }
 }

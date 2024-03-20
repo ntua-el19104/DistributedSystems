@@ -12,8 +12,8 @@
 - [ ] Handle the scenario where a node disconnects and tries to reconnect
 - [ ] Handle the case where a node tries to connect, bootstrap sends him his id,
 but he never receives it. 
-- [ ] It must be forbidden to send a transaction when the network isn't finished yet. Is it ? 
-If not, implement this restriction.
+- [ ] It must be forbidden to send a transaction when the network isn't finished yet.
+Implement this restriction.
 - [ ] Divide the bootstrap code from the regular nodes' code.
 - [ ] Should the broadcast of the transactions with the initial amount of each node happen 
 before the broadcast of the first block of the blockchain ? Ensure that the wanted result 

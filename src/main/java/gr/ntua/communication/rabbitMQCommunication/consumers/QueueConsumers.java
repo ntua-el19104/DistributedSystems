@@ -80,15 +80,13 @@ public class QueueConsumers {
         }
     }
 
-    //REGULAR NODE==================================================
+    //BOTH BOOTSTRAP AND REGULAR NODES==============================
     @RabbitListener(queues = "#{nodesAddressesQueue.name}")
     public void receiveAllNodesAddresses(byte[] publicKeyListBytes) {
-        if (!sharedConfig.getNode().isBootstrap()) {
-            List<PublicKey> addresses = CommunicationUtils.fromBytesToPublicKeyList(publicKeyListBytes);
-            sharedConfig.getNode().setAddresses(addresses);
-            sharedConfig.getNode().setNodeinfo();
-            log.info("I set the addresses and the nodeInfo for all nodes");
-        }
+        List<PublicKey> addresses = CommunicationUtils.fromBytesToPublicKeyList(publicKeyListBytes);
+        sharedConfig.getNode().setAddresses(addresses);
+        sharedConfig.getNode().setNodeInfo();
+        log.info("I set the addresses and the nodeInfo for all nodes");
     }
 
     //BOTH BOOTSTRAP AND REGULAR NODES==============================
@@ -100,7 +98,7 @@ public class QueueConsumers {
             try {
                 sharedConfig.getNode().addBlock(blockMessage.toBlock());
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
             log.info("Added new block to my blockchain");
         }

@@ -16,8 +16,8 @@ public class Main {
         comm.addNode(node2);
         node2.connectToBlockchat();
         comm.broadcastAddresses();
-        node1.setNodeinfo();
-        node2.setNodeinfo();
+        node1.setNodeInfo();
+        node2.setNodeInfo();
         Block genesis = node1.createGenesisBlock();
         comm.broadcastBlock(genesis,-1);
 

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Block {
-    private final int CAPACITY = 10;
+    private final int CAPACITY = 2;
     private int index;
     private LocalDateTime timestamp;
     private Integer validator;
@@ -29,9 +29,13 @@ public class Block {
     }
 
     public void addTransaction(Transaction transaction) throws Exception {
-        if(transactionList.size() < CAPACITY) {
+        if(transactionList.size() < CAPACITY-1) {
             transactionList.add(transaction);
-        } else {
+        } else if (transactionList.size() == CAPACITY-1) {
+            transactionList.add(transaction);
+            throw new Exception("Block filled with transactions");
+        }
+        else {
             // TODO create custom exception
             throw new Exception("Block filled with transactions");
         }

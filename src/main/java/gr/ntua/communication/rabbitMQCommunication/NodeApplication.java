@@ -1,5 +1,6 @@
 package gr.ntua.communication.rabbitMQCommunication;
 
+import gr.ntua.CliClient;
 import gr.ntua.blockchainService.Block;
 import gr.ntua.blockchainService.Node;
 import gr.ntua.communication.rabbitMQCommunication.configurations.SharedConfig;
@@ -45,6 +46,8 @@ public class NodeApplication {
             }
         }
 
+        CliClient cliClient = new CliClient(node,rabbitMQCommunication);
+        cliClient.run();
     }
 
 }
