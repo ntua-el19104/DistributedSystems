@@ -214,7 +214,8 @@ public class Node {
             nodeInfoList.get(sid).setBalance(amount);
         } else {
             nodeInfoList.get(rid).setBalance(amount);
-            nodeInfoList.get(validator).setBalance(transaction.getFee());
+            if(validator!=-1)
+                nodeInfoList.get(validator).setBalance(transaction.getFee());
             nodeInfoList.get(sid).setBalance(0 - amount - transaction.getFee());
         }
     }

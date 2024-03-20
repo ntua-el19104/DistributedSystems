@@ -33,12 +33,9 @@ public class Main {
         }
         node1.setBlock(new Block());
         node1.constructBlock();
-        node2.printNodes();
-        node1.printNodes();
         node2.setBlock(new Block());
         node2.constructBlock();
-        node2.printNodes();
-        node1.printNodes();
+
 
     }
 }
