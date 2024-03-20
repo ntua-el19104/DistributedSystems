@@ -193,7 +193,7 @@ public class Node {
         if (rid == -1) {
             if (amount < 0) {
                 amount *= -1;
-                return amount <= nodeInfoList.get(sid).getTempStake();
+                return amount <= nodeInfoList.get(sid).getStake();
             } else {
                 return amount <= nodeInfoList.get(sid).getBalance();
             }
@@ -347,14 +347,20 @@ public class Node {
         this.block = block;
     }
 
-    public void printNodes() {
+    public String viewState() {
+        String result = "";
         for (NodeInfo temp : nodeInfoList) {
-            System.out.println(temp.getAddress() + " " + temp.getBalance() + " " + temp.getStake());
+            result += temp.getAddress() + " " + temp.getBalance() + " " + temp.getStake() +'\n';
         }
+        return result;
     }
 
     @Override
     public String toString() {
         return "ID: " + id + "\n" + wallet.toString() + "\n";
+    }
+
+    public String viewBlock(){
+        return blockchain.get(blockchain.size() - 1).toString();
     }
 }

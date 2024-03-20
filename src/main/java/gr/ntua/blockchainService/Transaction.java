@@ -136,6 +136,7 @@ public class Transaction {
                 ", nonce=" + nonce +
                 ", transactionIdHash=" + (transactionIdHash == null ? "null" : TransactionUtils.bytesToHex(transactionIdHash)) +
                 ", signature=" + (signature == null ? "null" : TransactionUtils.bytesToHex(signature)) +
+                ", message=" + (message==null ? "null": message) +
                 '}';
     }
 }

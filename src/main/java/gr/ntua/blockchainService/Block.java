@@ -105,7 +105,7 @@ public class Block {
 
     @Override
     public String toString() {
-        return "Block{" +
+        String result = "Block{" +
                 "CAPACITY=" + CAPACITY +
                 ", index=" + index +
                 ", timestamp=" + timestamp +
@@ -114,5 +114,10 @@ public class Block {
                 ", previousHash=" + (previousHash == null ? "null" : TransactionUtils.bytesToHex(previousHash)) +
                 ", transactionList=" + transactionList +
                 '}';
+        for(Transaction transaction: transactionList){
+            result += '\n';
+            result += transaction.toString();
+        }
+        return result;
     }
 }
