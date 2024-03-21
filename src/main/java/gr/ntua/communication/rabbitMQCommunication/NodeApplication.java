@@ -13,48 +13,47 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class NodeApplication {
 
-    private static SharedConfig sharedConfig = null;
-    private static RabbitMQCommunication rabbitMQCommunication = null;
+  private static SharedConfig sharedConfig = null;
+  private static RabbitMQCommunication rabbitMQCommunication = null;
 
-    @Autowired
-    public NodeApplication(SharedConfig sharedConfig, RabbitMQCommunication rabbitMQCommunication) {
-        NodeApplication.sharedConfig = sharedConfig;
-        NodeApplication.rabbitMQCommunication = rabbitMQCommunication;
+  @Autowired
+  public NodeApplication(SharedConfig sharedConfig, RabbitMQCommunication rabbitMQCommunication) {
+    NodeApplication.sharedConfig = sharedConfig;
+    NodeApplication.rabbitMQCommunication = rabbitMQCommunication;
+  }
+
+
+  public static void main(String[] args) {
+    SpringApplication.run(NodeApplication.class, args);
+    boolean isBootstrap = Boolean.parseBoolean(args[0]);
+    int maxNetworkSize = Integer.parseInt(args[1]);
+
+    Node node = new Node(rabbitMQCommunication, isBootstrap);
+    sharedConfig.setNode(node);
+    sharedConfig.setMaxNetworkSize(maxNetworkSize);
+    node.connectToBlockchat();
+    System.out.println("Node has id: " + node.getId());
+
+    if (isBootstrap) {
+      try {
+        sharedConfig.getAllNodesConnected().get();
+        rabbitMQCommunication.broadcastAddresses();
+        Block genesis = node.createGenesisBlock();
+        rabbitMQCommunication.broadcastBlock(genesis, -1);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
-
-    public static void main(String[] args) {
-        SpringApplication.run(NodeApplication.class, args);
-        boolean isBootstrap = Boolean.parseBoolean(args[0]);
-        int maxNetworkSize = Integer.parseInt(args[1]);
-
-        Node node = new Node(rabbitMQCommunication, isBootstrap);
-        sharedConfig.setNode(node);
-        sharedConfig.setMaxNetworkSize(maxNetworkSize);
-        node.connectToBlockchat();
-        System.out.println("Node has id: " + node.getId());
-
-        if (isBootstrap){
-            try {
-                sharedConfig.getAllNodesConnected().get();
-                rabbitMQCommunication.broadcastAddresses();
-                Block genesis = node.createGenesisBlock();
-                rabbitMQCommunication.broadcastBlock(genesis,-1);
-            } catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-        else {
-            try {
-                sharedConfig.getReceivedGenesisBlock().get();
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-
-        CliClient cliClient = new CliClient(node,rabbitMQCommunication);
-        cliClient.run();
+    try {
+      sharedConfig.getReceivedGenesisBlock().get();
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+
+    CliClient cliClient = new CliClient(node, rabbitMQCommunication);
+    cliClient.run();
+  }
 
 }
 
