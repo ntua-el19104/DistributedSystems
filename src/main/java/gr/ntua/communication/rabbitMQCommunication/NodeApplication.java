@@ -18,14 +18,14 @@ public class NodeApplication {
 
     @Autowired
     public NodeApplication(SharedConfig sharedConfig, RabbitMQCommunication rabbitMQCommunication) {
-        this.sharedConfig = sharedConfig;
-        this.rabbitMQCommunication = rabbitMQCommunication;
+        NodeApplication.sharedConfig = sharedConfig;
+        NodeApplication.rabbitMQCommunication = rabbitMQCommunication;
     }
 
 
     public static void main(String[] args) {
         SpringApplication.run(NodeApplication.class, args);
-        Boolean isBootstrap = Boolean.parseBoolean(args[0]);
+        boolean isBootstrap = Boolean.parseBoolean(args[0]);
         int maxNetworkSize = Integer.parseInt(args[1]);
 
         Node node = new Node(rabbitMQCommunication, isBootstrap);
@@ -37,11 +37,17 @@ public class NodeApplication {
         if (isBootstrap){
             try {
                 sharedConfig.getAllNodesConnected().get();
-                System.out.println("Bootstrap stops listening for new nodes. Network is full.");
                 rabbitMQCommunication.broadcastAddresses();
                 Block genesis = node.createGenesisBlock();
                 rabbitMQCommunication.broadcastBlock(genesis,-1);
             } catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+        else {
+            try {
+                sharedConfig.getReceivedGenesisBlock().get();
+            } catch (Exception e){
                 e.printStackTrace();
             }
         }

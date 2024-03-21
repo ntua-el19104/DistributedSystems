@@ -93,14 +93,17 @@ public class QueueConsumers {
     @RabbitListener(queues = "#{blockQueue.name}")
     public void receiveBroadcastBlock(byte[] blockMessageBytes) {
         BlockMessage blockMessage = (BlockMessage) SerializationUtils.deserialize(blockMessageBytes);
-        log.info("Received a block message from node:" + blockMessage.getId());
         if (blockMessage.getId() != sharedConfig.getNode().getId()) {
+            log.info("Received a block message from node: " + blockMessage.getId());
             try {
                 sharedConfig.getNode().addBlock(blockMessage.toBlock());
+                if (blockMessage.getId() == -1) {
+                    sharedConfig.getReceivedGenesisBlock().complete(true);
+                }
+                log.info("Added block with id " + blockMessage.getId() + " to my blockchain");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            log.info("Added new block to my blockchain");
         }
     }
 
@@ -108,8 +111,8 @@ public class QueueConsumers {
     @RabbitListener(queues = "#{transactionQueue.name}")
     public void receiveTransaction(byte[] transactionMessageBytes) {
         TransactionMessage transactionMessage = (TransactionMessage) SerializationUtils.deserialize(transactionMessageBytes);
-        log.info("Received a transaction message from node:" + transactionMessage.getSenderId());
-        System.out.println("The transaction i received is: " + transactionMessage.toString());
+        log.info("Received a transaction message from node: " + transactionMessage.getSenderId());
+        //System.out.println("The transaction i received is: " + transactionMessage.toString());
         try {
             sharedConfig.getNode().addPendingTransaction(transactionMessage.toTransaction());
         } catch (Exception e) {

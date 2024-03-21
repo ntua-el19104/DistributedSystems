@@ -110,7 +110,7 @@ public class Node {
             try {
                 while (!pending.isEmpty()) {
                     Transaction current = pending.get(0);
-                    System.out.println("I am the validator now.");
+                    //System.out.println("I am the validator now.");
                     if (validateTransaction(current) && nodeInfoList.get(current.getSenderId()).addNonce(current.getNonce())) {
                         updateBalance(current, id);
                         counter++;
@@ -132,7 +132,7 @@ public class Node {
                 pendingListLock.unlock();
             }
         }
-        System.out.println(counter + " Transactions were added");
+       // System.out.println(counter + " Transactions were added");
     }
 
     public boolean validateBlock(Block block) {
@@ -249,7 +249,7 @@ public class Node {
                 }
                 updateBalance(i, validator);
                 boolean isRemoved = pending.removeIf(t -> Arrays.equals(i.getTransactionIdHash(), t.getTransactionIdHash()));
-                System.out.println("IsRemoved: " + isRemoved);
+                //System.out.println("IsRemoved: " + isRemoved);
             }
 
         } finally {
@@ -257,7 +257,7 @@ public class Node {
         }
         this.validator = (id == getValidator(block.getCurrentHash()));
         this.block = new Block();
-        constructBlock();
+        new Thread (this::constructBlock).start();
     }
 
     public int getValidator(byte[] hash) throws Exception {

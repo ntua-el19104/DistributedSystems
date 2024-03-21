@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.Lock;
 
 @Component
 @Setter
@@ -24,6 +23,8 @@ public class SharedConfig {
     //FOR REGULAR NODE ============
     private CompletableFuture<Integer> receivedId = new CompletableFuture<>();
     private CompletableFuture<List<PublicKey>> allPublicKeysList = new CompletableFuture<>();
+    //OR BOTH REGULAR AND BOOTSTRAP NODE
+    private CompletableFuture<Boolean> receivedGenesisBlock = new CompletableFuture<>();
 
 
     public void setNodeId(int id) {
