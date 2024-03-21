@@ -353,11 +353,11 @@ public class Node {
     }
 
     public String viewState() {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (NodeInfo temp : nodeInfoList) {
-            result += temp.getAddress() + " " + temp.getBalance() + " " + temp.getStake() + '\n';
+            result.append(temp.getAddress()).append(" ").append(temp.getBalance()).append(" ").append(temp.getStake()).append('\n');
         }
-        return result;
+        return result.toString();
     }
 
     @Override

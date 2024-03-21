@@ -1,7 +1,17 @@
 package gr.ntua.utils;
 
+import gr.ntua.blockchainService.Node;
+import gr.ntua.blockchainService.Transaction;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
+
 public class TransactionUtils {
     public static byte[] signTransaction(PrivateKey privateKey, byte[] data) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
@@ -36,5 +46,32 @@ public class TransactionUtils {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    public static List<Transaction> textToTransactions(Node node,String path){
+        List<Transaction> list = new ArrayList<>();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new FileReader(path));
+            String line = reader.readLine();
+
+            while (line != null) {
+                System.out.println(line);
+                int id = Integer.parseInt(line.substring(2,3));
+                String message = line.substring(4);
+                PublicKey publicKey = node.getAddresses().get(id);
+                try{
+                    list.add(node.createTransaction(0,publicKey,message));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                line = reader.readLine();
+            }
+
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
