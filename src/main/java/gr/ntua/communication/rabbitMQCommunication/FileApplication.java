@@ -53,7 +53,7 @@ public class FileApplication {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String path = "E:\\input\\trans" + node.getId() + ".txt";
+        String path = "src/main/java/gr/ntua/input/trans" + node.getId() + ".txt";
         List<Transaction> list = TransactionUtils.textToTransactions(node,path);
         for(Transaction t:list){
             rabbitMQCommunication.broadcastTransaction(t);

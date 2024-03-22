@@ -1,6 +1,7 @@
 package gr.ntua.communication.rabbitMQCommunication.configurations;
 
 import gr.ntua.blockchainService.Node;
+import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,8 +26,6 @@ public class SharedConfig {
     private CompletableFuture<List<PublicKey>> allPublicKeysList = new CompletableFuture<>();
     //OR BOTH REGULAR AND BOOTSTRAP NODE
     private CompletableFuture<Boolean> receivedGenesisBlock = new CompletableFuture<>();
-
-
     public void setNodeId(int id) {
         receivedId.complete(id);
     }
