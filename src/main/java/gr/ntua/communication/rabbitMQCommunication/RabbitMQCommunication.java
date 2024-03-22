@@ -79,7 +79,7 @@ public class RabbitMQCommunication implements Communication {
             BlockMessage blockMessage = new BlockMessage(id, block);
             byte[] toSend = SerializationUtils.serialize(blockMessage);
             rabbitTemplate.convertAndSend(MQConfig.BLOCK_EXCHANGE, "", toSend);
-            log.info("I have sent a block to all nodes - broadcastBlock");
+            log.info("I have sent a block to all nodes with index "+ blockMessage.getIndex() + " - broadcastBlock");
         } catch (Exception e) {
             e.printStackTrace();
         }

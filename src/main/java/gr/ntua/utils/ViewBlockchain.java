@@ -46,7 +46,7 @@ public class ViewBlockchain {
     public String viewInfo(){
         StringBuilder res = new StringBuilder();
         for(Node n: info){
-            res.append("id ").append(n.id).append("balance ").append(n.balance).append("stake ").append(n.stake).append("validations ").append(n.validations).append("\n");
+            res.append("id ").append(n.id).append(" balance ").append(n.balance).append(" stake ").append(n.stake).append(" validations ").append(n.validations).append("\n");
         }
         return res.toString();
     }
@@ -66,6 +66,7 @@ public class ViewBlockchain {
                 int sid = t.getSenderId();
                 int rid = t.getReceiverId();
                 double amount = t.getAmount();
+                //System.out.println(t.getFee() + " " + sid + " " + rid);
                 if(sid==-1){
                     info.get(rid).updateBalance(amount);
                 }else if(rid==-1){
@@ -77,7 +78,7 @@ public class ViewBlockchain {
                     amount*=-1;
                     info.get(sid).updateBalance(amount - t.getFee());
                     if(validator!=-1)
-                        info.get(sid).updateBalance(t.getFee());
+                        info.get(validator).updateBalance(t.getFee());
                 }
             }
         }

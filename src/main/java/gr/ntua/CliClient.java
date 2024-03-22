@@ -3,6 +3,7 @@ package gr.ntua;
 import gr.ntua.blockchainService.Node;
 import gr.ntua.blockchainService.Transaction;
 import gr.ntua.communication.Communication;
+import gr.ntua.utils.ViewBlockchain;
 import lombok.AllArgsConstructor;
 
 import java.security.PublicKey;
@@ -26,7 +27,6 @@ public class CliClient implements Runnable {
     public void processCommand(String command) throws Exception {
         String[] parts = command.split(" ");
         String action = parts[0].toLowerCase();
-
         switch (action) {
             case "t":
                 if (parts.length == 3) {
@@ -45,7 +45,7 @@ public class CliClient implements Runnable {
                     System.out.println("Invalid command. Usage: stake <amount>");
                 }
                 break;
-            case "view":
+            case "viewblock":
                 String lastBlock = node.viewBlock();
                 System.out.println(lastBlock);
                 break;
@@ -58,6 +58,11 @@ public class CliClient implements Runnable {
             case "state":
                 String state = node.viewState();
                 System.out.println(state);
+                break;
+            case "viewblockchaininfo":
+                ViewBlockchain view = new ViewBlockchain(node.getBlockchain(),node.getAddresses().size());
+                String info = view.viewInfo();
+                System.out.println(info);
                 break;
             default:
                 System.out.println("Unknown command. Type 'help' for instructions.\n");

@@ -100,15 +100,16 @@ public class QueueConsumers {
   public void receiveBroadcastBlock(byte[] blockMessageBytes) {
     BlockMessage blockMessage = (BlockMessage) SerializationUtils.deserialize(blockMessageBytes);
     if (blockMessage.getId() != sharedConfig.getNode().getId()) {
-      log.info("Received a block message from node: " + blockMessage.getId());
+      log.info("Received a block message from node: " + blockMessage.getId() + " with index " + blockMessage.getIndex());
       try {
         sharedConfig.getNode().addBlock(blockMessage.toBlock());
         if (blockMessage.getId() == -1) {
           sharedConfig.getReceivedGenesisBlock().complete(true);
         }
-        log.info("Added block with id " + blockMessage.getId() + " to my blockchain");
+        log.info("Added block with id " + blockMessage.getId() + " to my blockchain with index " + blockMessage.getIndex());
       } catch (Exception e) {
         e.printStackTrace();
+        System.out.println(e.getMessage());
       }
     }
   }

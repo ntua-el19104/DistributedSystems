@@ -50,22 +50,24 @@ public class TransactionUtils {
 
     public static List<Transaction> textToTransactions(Node node,String path){
         List<Transaction> list = new ArrayList<>();
+        int size = node.getAddresses().size();
         BufferedReader reader;
         try {
             reader = new BufferedReader(new FileReader(path));
             String line = reader.readLine();
 
             while (line != null) {
-                System.out.println(line);
                 int id = Integer.parseInt(line.substring(2,3));
                 String message = line.substring(4);
+                line = reader.readLine();
+                if(id >= size)
+                    continue;
                 PublicKey publicKey = node.getAddresses().get(id);
                 try{
                     list.add(node.createTransaction(0,publicKey,message));
                 }catch (Exception e){
                     e.printStackTrace();
                 }
-                line = reader.readLine();
             }
 
             reader.close();
