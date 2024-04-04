@@ -59,10 +59,15 @@ public class CliClient implements Runnable {
                 String state = node.viewState();
                 System.out.println(state);
                 break;
-            case "viewblockchaininfo":
+            case "blockchain":
                 ViewBlockchain view = new ViewBlockchain(node.getBlockchain(),node.getAddresses().size());
                 String info = view.viewInfo();
                 System.out.println(info);
+                break;
+            case "messages":
+                ViewBlockchain viewBlockchain = new ViewBlockchain(node.getBlockchain(),node.getAddresses().size());
+                String messages = viewBlockchain.viewMessages();
+                System.out.println(messages);
                 break;
             default:
                 System.out.println("Unknown command. Type 'help' for instructions.\n");

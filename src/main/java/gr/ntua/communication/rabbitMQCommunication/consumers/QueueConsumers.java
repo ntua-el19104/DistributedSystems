@@ -7,7 +7,11 @@ import gr.ntua.communication.rabbitMQCommunication.entities.BlockMessage;
 import gr.ntua.communication.rabbitMQCommunication.entities.ConnectionReply;
 import gr.ntua.communication.rabbitMQCommunication.entities.TransactionMessage;
 import gr.ntua.communication.rabbitMQCommunication.utils.CommunicationUtils;
-import java.util.concurrent.CompletableFuture;
+import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +20,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.utils.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.List;
 
 @Component
 @Setter
@@ -30,7 +30,7 @@ public class QueueConsumers {
   private SharedConfig sharedConfig;
   private int networkSize;
   private int connected;
-  private CompletableFuture<BlockMessage> receivedNewBlock;
+  ExecutorService executor = Executors.newFixedThreadPool(10);
   private ReentrantLock blockLock = new ReentrantLock();
 
   @Autowired
@@ -39,7 +39,6 @@ public class QueueConsumers {
     this.sharedConfig = sharedConfig;
     this.networkSize = 1;
     this.connected = 1;
-    this.receivedNewBlock = new CompletableFuture<>();
   }
 
   //BOOTSTRAP===============================================
@@ -106,10 +105,9 @@ public class QueueConsumers {
   public void receiveBroadcastBlock(byte[] blockMessageBytes) {
     BlockMessage blockMessage = (BlockMessage) SerializationUtils.deserialize(blockMessageBytes);
     if (blockMessage.getId() != sharedConfig.getNode().getId()) {
-      try{
-        //TODO thread pool instead of this!!
-        new Thread(()-> addBlockToBlockchain(blockMessage)).start();
-      }catch(Exception e){
+      try {
+        executor.execute(() -> addBlockToBlockchain(blockMessage));
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -132,18 +130,22 @@ public class QueueConsumers {
   }
 
   public void addBlockToBlockchain(BlockMessage blockMessage) {
-    while(true){
+    while (true) {
       blockLock.lock();
       List<Block> chain = sharedConfig.getNode().getBlockchain();
       blockLock.unlock();
-      if (chain.size() == 0 || blockMessage.getIndex() == chain.get(chain.size() -1).getIndex() + 1){
+      if (chain.size() == 0
+          || blockMessage.getIndex() == chain.get(chain.size() - 1).getIndex() + 1) {
         try {
-          log.info("Received a block message from node: " + blockMessage.getId() + " with index " + blockMessage.getIndex());
+          log.info("Received a block message from node: " + blockMessage.getId() + " with index "
+              + blockMessage.getIndex());
           sharedConfig.getNode().addBlock(blockMessage.toBlock());
           if (blockMessage.getId() == -1) {
             sharedConfig.getReceivedGenesisBlock().complete(true);
           }
-          log.info("Added block with id " + blockMessage.getId() + " to my blockchain with index " + blockMessage.getIndex());
+          log.info("Added block with id " + blockMessage.getId() + " to my blockchain with index "
+              + blockMessage.getIndex());
+
           break;
         } catch (Exception e) {
           e.printStackTrace();

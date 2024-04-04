@@ -34,6 +34,7 @@ public class Transaction {
             this.fee = amount * 0.03;
         } else if(message != null) {
             this.fee = message.length();
+            this.message = message;
         }
         // else {} throw error invalid transaction
         if(senderAddress==null || receiverAddress==null)

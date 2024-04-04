@@ -54,7 +54,7 @@ public class Block {
     private String blockPayloadToString() {
         if(previousHash==null)
             return "null";
-        return Integer.toString(index) + new String(previousHash, StandardCharsets.UTF_8) +
+        return index + new String(previousHash, StandardCharsets.UTF_8) +
                 timestamp.toString() + transactionsPayloadToString();
     }
 
