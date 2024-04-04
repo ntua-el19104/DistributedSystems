@@ -42,7 +42,7 @@ public class NodeInfo {
         }
         noncesList.add(nonce);
         Collections.sort(noncesList);
-        while (true){
+        while (noncesList.size()>1){
             if(noncesList.get(0).equals(noncesList.get(1) - 1))
                 noncesList.remove(0);
             else break;
