@@ -2,16 +2,15 @@ package gr.ntua.communication;
 
 import gr.ntua.blockchainService.Block;
 import gr.ntua.blockchainService.Transaction;
-
 import java.security.PublicKey;
-import java.util.concurrent.ExecutionException;
 
 public interface Communication {
-    public void broadcastTransaction(Transaction transaction);
 
-    public void broadcastAddresses();
+  void broadcastTransaction(Transaction transaction);
 
-    public int connectToBlockchat(PublicKey pubKey);
+  void broadcastAddresses();
 
-    public void broadcastBlock(Block block, int id);
+  int connectToBlockchat(PublicKey pubKey);
+
+  void broadcastBlock(Block block, int id);
 }

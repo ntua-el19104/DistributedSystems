@@ -20,11 +20,11 @@ public class BlockchainServiceTest {
     @BeforeEach
     public void blockchainSetup() {
         communication = new ClassInstancesCommunication();
-        Node node1 = new Node(communication, true);
+        Node node1 = new Node(communication, true,5);
         communication.addNode(node1);
         node1.connectToBlockchat();
         for (int i = 0; i < NUMBER_OF_NODES; i++) {
-            Node node = new Node(communication, false);
+            Node node = new Node(communication, false,5);
             communication.addNode(node);
             node.connectToBlockchat();
         }

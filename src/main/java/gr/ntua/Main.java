@@ -6,36 +6,38 @@ import gr.ntua.blockchainService.Transaction;
 import gr.ntua.communication.ClassInstancesCommunication;
 
 public class Main {
-    public static void main(String[] args) {
-        ClassInstancesCommunication comm = new ClassInstancesCommunication();
-        Node node1 = new Node(comm,true);
-        comm.addNode(node1);
-        node1.connectToBlockchat();
 
-        Node node2 = new Node(comm,false);
-        comm.addNode(node2);
-        node2.connectToBlockchat();
-        comm.broadcastAddresses();
-        node1.setNodeInfo();
-        node2.setNodeInfo();
-        Block genesis = node1.createGenesisBlock();
-        comm.broadcastBlock(genesis,-1);
+  public static void main(String[] args) {
+    ClassInstancesCommunication comm = new ClassInstancesCommunication();
+    int capacity = 5;
+    Node node1 = new Node(comm, true, capacity);
+    comm.addNode(node1);
+    node1.connectToBlockchat();
 
-        try {
-            node2.stake(100);
-            for (int i = 0; i < 20; i++) {
-                Transaction temp = node1.createTransaction(10, node2.getWallet().getPublicKey(), null);
-                node1.signTransaction(temp);
-                comm.broadcastTransaction(temp);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        node1.setBlock(new Block());
-        node1.constructBlock();
-        node2.setBlock(new Block());
-        node2.constructBlock();
+    Node node2 = new Node(comm, false, capacity);
+    comm.addNode(node2);
+    node2.connectToBlockchat();
+    comm.broadcastAddresses();
+    node1.setNodeInfo();
+    node2.setNodeInfo();
+    Block genesis = node1.createGenesisBlock();
+    comm.broadcastBlock(genesis, -1);
 
-
+    try {
+      node2.stake(100);
+      for (int i = 0; i < 20; i++) {
+        Transaction temp = node1.createTransaction(10, node2.getWallet().getPublicKey(), null);
+        node1.signTransaction(temp);
+        comm.broadcastTransaction(temp);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+    node1.setBlock(new Block(capacity));
+    node1.constructBlock();
+    node2.setBlock(new Block(capacity));
+    node2.constructBlock();
+
+
+  }
 }

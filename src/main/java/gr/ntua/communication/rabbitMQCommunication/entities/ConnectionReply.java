@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ConnectionReply {
-    private int nodeId;
-    private byte[] publicKey;
+
+  private int nodeId;
+  private byte[] publicKey;
 }

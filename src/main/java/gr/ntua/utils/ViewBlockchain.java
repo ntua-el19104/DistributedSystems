@@ -7,8 +7,8 @@ import java.util.List;
 
 public class ViewBlockchain {
 
-  private List<Block> blockchain;
-  private int networkSize;
+  private final List<Block> blockchain;
+  private final int networkSize;
   private List<Node> info;
 
   private class Node {
@@ -99,7 +99,8 @@ public class ViewBlockchain {
         int rid = t.getReceiverId();
         String message = t.getMessage();
         if (message != null) {
-          res.append("Node ").append(sid).append(" ").append("sent '").append(message).append("' to node ")
+          res.append("Node ").append(sid).append(" ").append("sent '").append(message)
+              .append("' to node ")
               .append(rid).append("\n");
         }
       }

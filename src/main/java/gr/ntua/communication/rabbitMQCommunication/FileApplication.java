@@ -1,7 +1,5 @@
 package gr.ntua.communication.rabbitMQCommunication;
 
-import static java.lang.Thread.sleep;
-
 import gr.ntua.CliClient;
 import gr.ntua.blockchainService.Block;
 import gr.ntua.blockchainService.Node;
@@ -31,8 +29,10 @@ public class FileApplication {
     SpringApplication.run(NodeApplication.class, args);
     boolean isBootstrap = Boolean.parseBoolean(args[0]);
     int maxNetworkSize = Integer.parseInt(args[1]);
+    int capacity = Integer.parseInt(args[2]);
+    int stakeAmount = Integer.parseInt(args[3]);
 
-    Node node = new Node(rabbitMQCommunication, isBootstrap);
+    Node node = new Node(rabbitMQCommunication, isBootstrap, capacity);
     sharedConfig.setNode(node);
     sharedConfig.setMaxNetworkSize(maxNetworkSize);
     node.connectToBlockchat();
@@ -51,20 +51,21 @@ public class FileApplication {
 
     try {
       sharedConfig.getReceivedGenesisBlock().get();
+      node.stake(stakeAmount);
     } catch (Exception e) {
       e.printStackTrace();
     }
     String path = "src/main/java/gr/ntua/input/trans" + node.getId() + ".txt";
     List<Transaction> list = TransactionUtils.textToTransactions(node, path);
+    CliClient cliClient = new CliClient(node, rabbitMQCommunication);
     for (Transaction t : list) {
       try {
         rabbitMQCommunication.broadcastTransaction(t);
-        //sleep(1000);
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
-    CliClient cliClient = new CliClient(node, rabbitMQCommunication);
     cliClient.run();
+
   }
 }

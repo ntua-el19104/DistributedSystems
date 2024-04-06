@@ -27,8 +27,9 @@ public class NodeApplication {
     SpringApplication.run(NodeApplication.class, args);
     boolean isBootstrap = Boolean.parseBoolean(args[0]);
     int maxNetworkSize = Integer.parseInt(args[1]);
+    int capacity = Integer.parseInt(args[2]);
 
-    Node node = new Node(rabbitMQCommunication, isBootstrap);
+    Node node = new Node(rabbitMQCommunication, isBootstrap, capacity);
     sharedConfig.setNode(node);
     sharedConfig.setMaxNetworkSize(maxNetworkSize);
     node.connectToBlockchat();

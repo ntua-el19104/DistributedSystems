@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClassInstancesCommunication implements Communication {
-    private List<Node> nodesList = new ArrayList<>();
+    private final List<Node> nodesList = new ArrayList<>();
 
     public List<Node> getNodesList() {
         return nodesList;

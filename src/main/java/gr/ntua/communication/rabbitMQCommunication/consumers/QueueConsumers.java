@@ -30,7 +30,7 @@ public class QueueConsumers {
   private SharedConfig sharedConfig;
   private int networkSize;
   private int connected;
-  ExecutorService executor = Executors.newFixedThreadPool(10);
+  ExecutorService executor = Executors.newFixedThreadPool(100);
   private ReentrantLock blockLock = new ReentrantLock();
 
   @Autowired
@@ -104,12 +104,10 @@ public class QueueConsumers {
   @RabbitListener(queues = "#{blockQueue.name}")
   public void receiveBroadcastBlock(byte[] blockMessageBytes) {
     BlockMessage blockMessage = (BlockMessage) SerializationUtils.deserialize(blockMessageBytes);
-    if (blockMessage.getId() != sharedConfig.getNode().getId()) {
-      try {
-        executor.execute(() -> addBlockToBlockchain(blockMessage));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+    try {
+      executor.execute(() -> addBlockToBlockchain(blockMessage));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -118,27 +116,26 @@ public class QueueConsumers {
   public void receiveTransaction(byte[] transactionMessageBytes) {
     TransactionMessage transactionMessage = (TransactionMessage) SerializationUtils.deserialize(
         transactionMessageBytes);
-    log.info("Received a transaction message from node: " + transactionMessage.getSenderId());
+    //log.info("Received a transaction message from node: " + transactionMessage.getSenderId());
     //System.out.println("The transaction i received is: " + transactionMessage.toString());
     try {
       sharedConfig.getNode().addPendingTransaction(transactionMessage.toTransaction());
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }
-    log.info("Added received transaction to pending transactions list");
+    //log.info("Added received transaction to pending transactions list");
 
   }
 
   public void addBlockToBlockchain(BlockMessage blockMessage) {
+    log.info("Received a block message from node: " + blockMessage.getId() + " with index "
+        + blockMessage.getIndex());
     while (true) {
       blockLock.lock();
       List<Block> chain = sharedConfig.getNode().getBlockchain();
-      blockLock.unlock();
       if (chain.size() == 0
           || blockMessage.getIndex() == chain.get(chain.size() - 1).getIndex() + 1) {
         try {
-          log.info("Received a block message from node: " + blockMessage.getId() + " with index "
-              + blockMessage.getIndex());
           sharedConfig.getNode().addBlock(blockMessage.toBlock());
           if (blockMessage.getId() == -1) {
             sharedConfig.getReceivedGenesisBlock().complete(true);
@@ -149,7 +146,9 @@ public class QueueConsumers {
           break;
         } catch (Exception e) {
           e.printStackTrace();
-          System.out.println(e.getMessage());
+          break;
+        } finally {
+          blockLock.unlock();
         }
       }
     }
