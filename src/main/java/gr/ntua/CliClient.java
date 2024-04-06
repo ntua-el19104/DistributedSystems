@@ -16,11 +16,15 @@ public class CliClient implements Runnable {
 
   public void printHelp() {
     System.out.println("Available commands:\n");
-    System.out.println("t <recipient_address> <message> - New transaction");
+    System.out.println("t <recipient_address> <amount> - New transaction");
+    System.out.println("m <recipient_address> <message> - New transaction");
     System.out.println("stake <amount> - Set the node stake");
     System.out.println("view - View last block");
-    System.out.println("balance - Show balance");
+    System.out.println("balance - View your balance");
     System.out.println("exit - Exit BlockChat");
+    System.out.println("state - View information about the nodes");
+    System.out.println("blockchain - View blockchain information(based on last validated block)");
+    System.out.println("messages - View all exchanged messages");
   }
 
   public void processCommand(String command) throws Exception {
@@ -36,6 +40,15 @@ public class CliClient implements Runnable {
           System.out.println("Invalid command. Usage: t <recipient_address> <message>");
         }
         break;
+      case "m":
+        if (parts.length == 3) {
+          PublicKey receiver = node.getAddresses().get(Integer.parseInt(parts[1]));
+          Transaction t = node.createTransaction(0, receiver, parts[2]);
+          communication.broadcastTransaction(t);
+        } else {
+          System.out.println("Invalid command. Usage: t <recipient_address> <message>");
+        }
+        break;
       case "stake":
         if (parts.length == 2) {
           System.out.println("You staked " + parts[1] + " coins.");
@@ -44,7 +57,7 @@ public class CliClient implements Runnable {
           System.out.println("Invalid command. Usage: stake <amount>");
         }
         break;
-      case "viewblock":
+      case "view":
         String lastBlock = node.viewBlock();
         System.out.println(lastBlock);
         break;

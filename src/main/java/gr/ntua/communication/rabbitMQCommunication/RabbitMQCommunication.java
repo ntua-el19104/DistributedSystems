@@ -35,7 +35,7 @@ public class RabbitMQCommunication implements Communication {
       TransactionMessage transactionMessage = new TransactionMessage(transaction);
       byte[] toSend = SerializationUtils.serialize(transactionMessage);
       rabbitTemplate.convertAndSend(MQConfig.TRANSACTION_EXCHANGE, "", toSend);
-      log.info("I have sent a transaction to all nodes - broadcastTransaction");
+      //log.info("I have sent a transaction to all nodes - broadcastTransaction");
     } catch (Exception e) {
       e.printStackTrace();
     }

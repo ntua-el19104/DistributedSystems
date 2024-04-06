@@ -44,12 +44,17 @@ public class ViewBlockchain {
 
   public String viewInfo() {
     StringBuilder res = new StringBuilder();
+    String headerFormat = "%-3s %-8s %-6s %-11s %s\n";
+    res.append(
+        String.format(headerFormat, "ID", "Balance", "Stake", "Validations", "Total Blocks"));
     for (Node n : info) {
-      res.append("id ").append(n.id).append(" balance ").append(n.balance).append(" stake ")
-          .append(n.stake).append(" validations ").append(n.validations).append("\n");
+      String nodeInfoFormat = "%-3s %-8s %-6s %-11s %s\n";
+      res.append(String.format(nodeInfoFormat, n.id, n.balance, n.stake, n.validations,
+          blockchain.size()));
     }
     return res.toString();
   }
+
 
   private void setInfo() {
     this.info = new ArrayList<>();

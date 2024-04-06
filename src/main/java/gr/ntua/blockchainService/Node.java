@@ -71,10 +71,6 @@ public class Node {
     transaction.setSignature(signature);
   }
 
-  public void broadcastTransaction(Transaction transaction) {
-    communication.broadcastTransaction(transaction);
-  }
-
   public boolean verifySignature(Transaction transaction) {
     try {
       return TransactionUtils.verifySignature(
@@ -110,7 +106,6 @@ public class Node {
    * sent.
    */
   public void constructBlock() {
-    int counter = 0;
     while (true) {
       pendingListLock.lock();
       try {
@@ -119,7 +114,6 @@ public class Node {
           if (validateTransaction(current) && nodeInfoList.get(current.getSenderId())
               .addNonce(current.getNonce())) {
             updateBalance(current, id);
-            counter++;
             block.addTransaction(current);
           }
           pending.remove(0);
@@ -270,7 +264,7 @@ public class Node {
       }
     }
     this.validator = (id == getValidator(block.getCurrentHash()));
-    System.out.println("Next validator = "+ getValidator(block.getCurrentHash()));
+    //System.out.println("Next validator = " + getValidator(block.getCurrentHash()));
     this.block = new Block(blockCapacity);
     if (this.validator) {
       new Thread(this::constructBlock).start();
@@ -369,12 +363,16 @@ public class Node {
 
   public String viewState() {
     StringBuilder result = new StringBuilder();
+    String headerFormat = "%-10s %-10s %-10s\n";
+    result.append(String.format(headerFormat, "NodeID", "Balance", "Stake"));
     for (NodeInfo temp : nodeInfoList) {
-      result.append(temp.getAddress()).append(" ").append(temp.getBalance()).append(" ")
-          .append(temp.getStake()).append('\n');
+      String nodeInfoFormat = "%-10s %-10s %-10s\n";
+      result.append(
+          String.format(nodeInfoFormat, temp.getAddress(), temp.getBalance(), temp.getStake()));
     }
     return result.toString();
   }
+
 
   @Override
   public String toString() {
