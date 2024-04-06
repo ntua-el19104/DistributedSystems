@@ -28,7 +28,7 @@ public class Node {
   private ReentrantLock pendingListLock;
   private ReentrantLock blockLock;
   private int blockCapacity;
-
+  private long lastBlockTimer = 0;
   private boolean validator;
 
   public Node(Communication communication, boolean isBootstrap, int capacity) {
@@ -240,6 +240,7 @@ public class Node {
     if (block.getValidator() == id || validateBlock(block)) {
       blockLock.lock();
       blockchain.add(block);
+      lastBlockTimer = System.currentTimeMillis();
       blockLock.unlock();
     } else {
       throw new Exception("Node " + id + " failed to validate a block");
