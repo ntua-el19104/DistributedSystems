@@ -16,7 +16,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <start-class>gr.ntua.communication.rabbitMQCommunication.NodeApplication</start-class>
+        <start-class>gr.ntua.communication.rabbitMQCommunication.FileApplication</start-class>
     </properties>
     <dependencies>
         <dependency>
@@ -34,12 +34,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- 		<dependency> -->
-        <!-- 			<groupId>org.springframework.boot</groupId> -->
-        <!-- 			<artifactId>spring-boot-docker-compose</artifactId> -->
-        <!-- 			<scope>runtime</scope> -->
-        <!-- 			<optional>true</optional> -->
-        <!-- 		</dependency> -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
