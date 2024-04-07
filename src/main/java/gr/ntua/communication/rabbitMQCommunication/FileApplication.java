@@ -55,7 +55,8 @@ public class FileApplication {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    String path = "src/main/java/gr/ntua/input/trans" + node.getId() + ".txt";
+    //String path = "src/main/java/gr/ntua/input/trans" + node.getId() + ".txt";
+    String path = "/input/trans" + node.getId() + ".txt";
     List<Transaction> list = TransactionUtils.textToTransactions(node, path);
     long startTimer = System.currentTimeMillis();
     CliClient cliClient = new CliClient(node, rabbitMQCommunication);
@@ -72,7 +73,7 @@ public class FileApplication {
       e.printStackTrace();
     }
     long totalTime = node.getLastBlockTimer() - startTimer;
-    System.out.println("Total Time: " + totalTime);
+    System.out.println("Total Time: " + totalTime + " (ms)");
     cliClient.run();
   }
 }
