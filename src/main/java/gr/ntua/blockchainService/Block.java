@@ -106,21 +106,27 @@ public class Block {
 
   @Override
   public String toString() {
-    StringBuilder result = new StringBuilder("Block{" +
-        "CAPACITY=" + capacity +
-        ", index=" + index +
-        ", timestamp=" + timestamp +
-        ", validator=" + (validator == null ? "null" : validator.toString()) +
-        ", currentHash=" + (currentHash == null ? "null" : TransactionUtils.bytesToHex(currentHash))
-        +
-        ", previousHash=" + (previousHash == null ? "null"
-        : TransactionUtils.bytesToHex(previousHash)) +
-        ", transactionList=" + transactionList +
-        '}');
-    for (Transaction transaction : transactionList) {
-      result.append('\n');
-      result.append(transaction.toString());
+    StringBuilder result = new StringBuilder("Block: \n" +
+        "capacity: " + capacity + "\n" +
+        "index: " + index + "\n" +
+        "timestamp: " + timestamp + "\n" +
+        "validator: " + (validator == null ? "null" : validator.toString()) + "\n" +
+        "currentHash: " + (currentHash == null ? "null" : TransactionUtils.bytesToHex(currentHash))
+        + "\n" +
+        "previousHash: " + (previousHash == null ? "null"
+        : TransactionUtils.bytesToHex(previousHash)) + "\n" +
+        "transactionList: [");
+
+    if (!transactionList.isEmpty()) {
+      result.append("\n");
+      result.append("1. ").append(transactionList.get(0).toString());
+      for (int i = 1; i < transactionList.size(); i++) {
+        result.append(",\n");
+        result.append(i + 1).append(". ").append(transactionList.get(i).toString());
+      }
     }
+
+    result.append("]");
     return result.toString();
   }
 }

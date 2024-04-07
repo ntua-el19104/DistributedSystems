@@ -38,9 +38,9 @@ public class Transaction {
       this.message = message;
     }
     // else {} throw error invalid transaction
-      if (senderAddress == null || receiverAddress == null) {
-          this.fee = 0;
-      }
+    if (senderAddress == null || receiverAddress == null) {
+      this.fee = 0;
+    }
   }
 
 
@@ -143,15 +143,15 @@ public class Transaction {
     String receiverAddressToString =
         receiverAddress != null ? Base64.getEncoder().encodeToString(receiverAddress.getEncoded())
             : "null";
-    return "Transaction{" +
-        "amount=" + amount +
-        ", senderAddress=" + senderAddressToString +
-        ", receiverAddress=" + receiverAddressToString +
-        ", nonce=" + nonce +
-        ", transactionIdHash=" + (transactionIdHash == null ? "null"
-        : TransactionUtils.bytesToHex(transactionIdHash)) +
-        ", signature=" + (signature == null ? "null" : TransactionUtils.bytesToHex(signature)) +
-        ", message=" + (message == null ? "null" : message) +
-        '}';
+    return "Transaction: \n" +
+        "amount: " + amount + "\n" +
+        "senderAddress: " + senderAddressToString + "\n" +
+        "receiverAddress: " + receiverAddressToString + "\n" +
+        "nonce: " + nonce + "\n" +
+        "transactionIdHash: " + (transactionIdHash == null ? "null"
+        : TransactionUtils.bytesToHex(transactionIdHash)) + "\n" +
+        "signature: " + (signature == null ? "null" : TransactionUtils.bytesToHex(signature)) + "\n"
+        +
+        "message: " + (message == null ? "null" : message) + "\n";
   }
 }
