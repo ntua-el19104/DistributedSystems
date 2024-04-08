@@ -26,7 +26,6 @@ public class Node {
   private List<Transaction> pending = new ArrayList<>();
   private boolean isBootstrap;
   private ReentrantLock pendingListLock;
-  private ReentrantLock blockLock;
   private int blockCapacity;
   private long lastBlockTimer = 0;
   private boolean validator;
@@ -41,7 +40,6 @@ public class Node {
     this.id = -1;
     this.isBootstrap = isBootstrap;
     this.pendingListLock = new ReentrantLock();
-    this.blockLock = new ReentrantLock();
   }
 
   // CORE FUNCTIONS --------------------------------------------------------------------------------
@@ -238,10 +236,8 @@ public class Node {
 
   public void addBlock(Block block) throws Exception {
     if (block.getValidator() == id || validateBlock(block)) {
-      blockLock.lock();
       blockchain.add(block);
       lastBlockTimer = System.currentTimeMillis();
-      blockLock.unlock();
     } else {
       throw new Exception("Node " + id + " failed to validate a block");
     }
