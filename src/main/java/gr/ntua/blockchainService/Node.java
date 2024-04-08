@@ -298,14 +298,14 @@ public class Node {
   public Block createGenesisBlock() {
     Block block = new Block(blockCapacity);
     int size = addresses.size();
-    Transaction t0 = new Transaction(size * 1000, null, addresses.get(0), 0, null);
+    Transaction t0 = new Transaction(size * 10000, null, addresses.get(0), 0, null);
     t0.setSenderId(-1);
     t0.setReceiverId(0);
     block.addTransactionNoCheck(t0);
     for (int i = 1; i < size; i++) {
       PublicKey publicKey = addresses.get(i);
       try {
-        Transaction transaction = createTransaction(1000, publicKey, null);
+        Transaction transaction = createTransaction(10000, publicKey, null);
         transaction.setFee(0);
         block.addTransactionNoCheck(transaction);
       } catch (Exception e) {
