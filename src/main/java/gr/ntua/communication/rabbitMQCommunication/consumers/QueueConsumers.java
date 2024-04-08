@@ -131,14 +131,7 @@ public class QueueConsumers {
     log.info("Received a block message from node: " + blockMessage.getId() + " with index "
         + blockMessage.getIndex());
     while (true) {
-      try{
       blockLock.lock();
-      }catch (Exception e){
-        log.error("blockLock");
-        log.error(e.getMessage(), e);
-        executor.execute(() -> addBlockToBlockchain(blockMessage));
-        break;
-      }
       List<Block> chain = sharedConfig.getNode().getBlockchain();
       if (chain.size() == 0
           || blockMessage.getIndex() == chain.get(chain.size() - 1).getIndex() + 1) {
@@ -159,6 +152,10 @@ public class QueueConsumers {
           blockLock.unlock();
         }
       }
+      else{
+        blockLock.unlock();
+      }
+
     }
     Thread.currentThread().interrupt();
   }
