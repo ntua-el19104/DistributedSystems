@@ -17,7 +17,7 @@
 κατάσταση του δικτύου και ένα instance της communication κλάσης ώστε να επικοινωνεί με τους υπόλοιπους κόμβους.
 
 #### [Wallet](src/main/java/gr/ntua/blockchainService/Wallet.java)
-Περιέχει το private και το public key του κόμβου και έχει την δυνατότητα να transactions.
+Περιέχει το private και το public key του κόμβου και έχει την δυνατότητα να υπογράφει transactions.
 
 #### [Transaction](src/main/java/gr/ntua/blockchainService/Wallet.java)
 Κάθε transaction περιέχει το πόσο και το μήνυμα που μεταφέρεται, τα public keys του αποστολέα 
@@ -64,3 +64,6 @@ index ελέγχεται η εγκυρότητα του, έπειτα ενημε
 
 
 ### Deployment
+Χρησιμοποιήσαμε 5 VMs του Okeanos. Εγκαταστήσαμε σε αυτά το λογισμικό Docker, <<περάσαμε>> σε όλα το 
+docker image της εφαρμογής μας και σε ένα απο αυτά το image του RabbitMQ. Στην συνέχεια, τρέξαμε μέσω Docker
+την εφαρμογή σε interactive mode ώστε να αλληλεπιδρούμε με αυτή μέσω του terminal.
